@@ -113,7 +113,7 @@ class CH_Booking_Rules {
 
     public function enqueue_frontend(){
         $cfg = $this->get_config();
-        wp_register_script('ch-booking-js', plugins_url('assets/ch-booking.v1.3.5.js', __FILE__), ['jquery'], '1.3.5', true);
+        wp_register_script('ch-booking-js', plugins_url('assets/ch-booking.v1.3.6.js', __FILE__), ['jquery'], '1.3.6', true);
         wp_enqueue_script('ch-booking-js');
         wp_localize_script('ch-booking-js', 'CH_BOOKING_CFG', $cfg);
 
