@@ -5,6 +5,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-PT/1.0.0/)
 e este projeto adota [Semantic Versioning](https://semver.org/lang/pt-PT/).
 
 ---
+## [1.3.11] - 2025-10-01
+### Corrigido
+- Corrigido um loop infinito no cálculo de datas e valores que impedia o datepicker de abrir, causado por disparar o evento 'change' em campos calculados (noites e total).
+
+### Melhorado
+- Estabilidade geral do frontend ao calcular o número de noites e o valor total.
+
 ## [1.3.10] - 2025-09-30 ### Corrigido 
 - Bloqueio de datas no datepicker do check-in (garante que minDate é a meia-noite de hoje). ### Melhorado - minDate do check-out é agora dinâmico, forçando a seleção de datas no dia seguinte ao check-in.
 
