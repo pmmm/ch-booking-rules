@@ -117,7 +117,7 @@ class CH_Booking_Rules {
         wp_enqueue_script('ch-booking-js');
         wp_localize_script('ch-booking-js', 'CH_BOOKING_CFG', $cfg);
 
-        wp_register_style('ch-booking-style', plugins_url('assets/style.css', __FILE__), [], '1.3.5');
+        wp_register_style('ch-booking-style', plugins_url('assets/style.css', __FILE__), [], '1.3.6');
         wp_enqueue_style('ch-booking-style');
     }
 }
