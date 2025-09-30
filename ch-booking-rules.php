@@ -2,7 +2,7 @@
 /**
  * Plugin Name: CH Booking Rules
  * Description: Épocas, mínimos e promoções (recorrentes) + código promocional para Fluent Forms. v1.3.7: melhorias no cálculo do total (value/label), parser de datas e UX.
- * Version: 1.3.7
+ * Version: 1.3.8
  * Author: Pedro & ChatGPT
  * License: GPLv2 or later
  * Text Domain: ch-booking-rules
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 class CH_Booking_Rules {
     const OPT_KEY = 'ch_booking_rules_cfg';
-    const VER     = '1.3.7';
+    const VER     = '1.3.8';
 
     public function __construct(){
         add_action( 'admin_menu',        [$this, 'admin_menu'] );
