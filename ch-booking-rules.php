@@ -1,12 +1,13 @@
 <?php
 /**
  * Plugin Name: CH Booking Rules
- * Description: Épocas, mínimos e promoções (recorrentes) + código promocional para Fluent Forms. v1.3.5: preço por noite visível ao escolher alojamento + melhorias de datas e validação.
+ * Description: Épocas, mínimos e promoções (recorrentes) + código promocional para Fluent Forms. v1.3.6: validação frontend integrada com épocas, promoções e cálculo automático de total.
  * Version: 1.3.6
  * Author: Pedro & ChatGPT
  * License: GPLv2 or later
  * Text Domain: ch-booking-rules
  */
+
 if (!defined('ABSPATH')) { exit; }
 
 class CH_Booking_Rules {
@@ -21,7 +22,13 @@ class CH_Booking_Rules {
     }
 
     public function admin_menu(){
-        add_options_page(__('Booking Rules','ch-booking-rules'), __('Booking Rules','ch-booking-rules'), 'manage_options', 'ch-booking-rules', [$this, 'settings_page']);
+        add_options_page(
+            __('Booking Rules','ch-booking-rules'),
+            __('Booking Rules','ch-booking-rules'),
+            'manage_options',
+            'ch-booking-rules',
+            [$this, 'settings_page']
+        );
     }
 
     public function register_settings(){
@@ -48,7 +55,13 @@ class CH_Booking_Rules {
                 ['name'=>__('Época Normal','ch-booking-rules'),'from'=>'09-01','to'=>'09-30','minNights'=>3]
             ],
             'promos' => [
-                ['name'=>__('Campanha de Outono','ch-booking-rules'),'from'=>'10-01','to'=>'11-30','discount'=>['type'=>'percent','value'=>25],'minNights'=>2,'priority'=>10,'applyRule'=>'full_stay','code'=>'OUTONO25']
+                [
+                    'name'=>__('Campanha de Outono','ch-booking-rules'),
+                    'from'=>'10-01','to'=>'11-30',
+                    'discount'=>['type'=>'percent','value'=>25],
+                    'minNights'=>2,'priority'=>10,
+                    'applyRule'=>'full_stay','code'=>'OUTONO25'
+                ]
             ],
             'texts' => [
                 'label_daily'      => __('Preço por noite: {{PRICE}} €','ch-booking-rules'),
@@ -80,6 +93,7 @@ class CH_Booking_Rules {
     public function settings_page(){
         if (!current_user_can('manage_options')) return;
         $cfg = $this->get_config();
+
         if (isset($_POST['ch_booking_rules_save']) && check_admin_referer('ch_booking_rules_save_nonce')) {
             $raw = wp_unslash($_POST['ch_rules_json'] ?? '');
             $decoded = json_decode($raw, true);
@@ -91,6 +105,7 @@ class CH_Booking_Rules {
                 echo '<div class="error"><p>'.esc_html__('JSON inválido — não guardado.','ch-booking-rules').'</p></div>';
             }
         }
+
         $json = esc_textarea(json_encode($cfg, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
         echo '<div class="wrap">';
         echo '<h1>'.esc_html__('Booking Rules','ch-booking-rules').' <span style="font-size:12px;color:#666;">v'.esc_html(self::VER).'</span></h1>';
@@ -113,11 +128,25 @@ class CH_Booking_Rules {
 
     public function enqueue_frontend(){
         $cfg = $this->get_config();
-        wp_register_script('ch-booking-js', plugins_url('assets/ch-booking.v1.3.6.js', __FILE__), ['jquery'], '1.3.6', true);
+
+        // JS
+        wp_register_script(
+            'ch-booking-js',
+            plugins_url('assets/ch-booking.js', __FILE__),
+            ['jquery'],
+            self::VER,
+            true
+        );
         wp_enqueue_script('ch-booking-js');
         wp_localize_script('ch-booking-js', 'CH_BOOKING_CFG', $cfg);
 
-        wp_register_style('ch-booking-style', plugins_url('assets/style.css', __FILE__), [], '1.3.6');
+        // CSS
+        wp_register_style(
+            'ch-booking-style',
+            plugins_url('assets/style.css', __FILE__),
+            [],
+            self::VER
+        );
         wp_enqueue_style('ch-booking-style');
     }
 }
