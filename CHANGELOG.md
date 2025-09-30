@@ -5,6 +5,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-PT/1.0.0/)
 e este projeto adota [Semantic Versioning](https://semver.org/lang/pt-PT/).
 
 ---
+## [1.3.10] - 2025-09-30 ### Corrigido 
+- Bloqueio de datas no datepicker do check-in (garante que minDate é a meia-noite de hoje). ### Melhorado - minDate do check-out é agora dinâmico, forçando a seleção de datas no dia seguinte ao check-in.
+
 ## [1.3.8] - 2025-09-30
 - Datepicker: bloqueio visual de datas anteriores à de hoje + `minDate` dinâmico no check-out.
 - Alojamento: cálculo do total passa a aceitar o *label* ou o *value* (FluentForms radios/select).
