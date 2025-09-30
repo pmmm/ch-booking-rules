@@ -1,4 +1,4 @@
-/* Estilos adicionais para CH Booking Rules */
+/* Estilos principais do CH Booking Rules (chbr) */
 .chbr-daily-rate{
   display:inline-block;
   margin-top:.35rem;
@@ -10,10 +10,156 @@
   border-radius:.5rem;
 }
 
-/* Mobile buttons fix */
+/* Mobile buttons fix (do ficheiro original) */
 @media (max-width: 768px){
   .accom-cards .ff-el-form-check{
     display:block !important;
     margin-bottom:8px !important;
   }
+}
+
+/* ---------------------------------------------------- */
+/* NOVO: Estilos Customizados para Fluent Forms (#ff_carvalha house.css) */
+/* ---------------------------------------------------- */
+
+#ff-minnights-msg{
+  background:#fee2e2;
+  border:1px solid #fecaca;
+  padding:.75rem 1rem;
+  border-radius:.5rem;
+  font-weight:600;
+}
+#ff-minnights-hint{
+  background:#f1f5f9;
+  border:1px dashed #cbd5e1;
+  padding:.5rem .75rem;
+  border-radius:.5rem;
+}
+
+/* ===== Valor Total (name="total") – versão única e com maior especificidade ===== */
+#fluentform_3 input[name="total"]{
+  font-size: 1.8rem !important;   /* garante tamanho */
+  font-weight: 800;
+  line-height: 1.2;
+  color: #111827;
+  background: #F9FAFB !important;
+  border: 2px solid #111827 !important;
+  border-radius: 10px 0 0 10px;   /* lado esquerdo; o sufixo fecha à direita */
+  text-align: right;
+  padding-right: 16px;
+  height: 56px;                   /* altura consistente */
+}
+
+/* remover setas do number */
+#fluentform_3 input[name="total"]::-webkit-outer-spin-button,
+#fluentform_3 input[name="total"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+#fluentform_3 input[name="total"][type=number]{ -moz-appearance:textfield; }
+
+/* foco consistente */
+#fluentform_3 input[name="total"]:focus{
+  border-color:#111827 !important;
+  box-shadow:0 0 0 3px rgba(17,24,39,.15);
+}
+
+/* Sufixo "euros" a combinar com o input (mesma altura e borda) */
+#fluentform_3 .ff-el-input--content{
+  display:flex;
+  align-items:center;
+}
+#fluentform_3 .ff-el-input--content .ff-el-input-suffix{
+  background:#F9FAFB !important;
+  border:2px solid #111827 !important;
+  border-left:0 !important;
+  height:56px;
+  display:flex;
+  align-items:center;
+  padding:0 14px;
+  font-size:1.2rem;
+  font-weight:700;
+  color:#111827;
+  border-radius:0 10px 10px 0;    /* fecha o lado direito */
+  margin-left:0;                  /* encosta ao input */
+}
+
+/* Mobile: ligeiro ajuste de tamanho */
+@media (max-width:480px){
+  #fluentform_3 input[name="total"]{ font-size:1.6rem !important; height:52px; }
+  #fluentform_3 .ff-el-input--content .ff-el-input-suffix{ height:52px; }
+}
+
+/* GRID dos cartões */
+.accom-cards .ff-el-form-check {
+  display: grid;
+  gap: 16px;              /* espaçamento vertical entre opções */
+}
+
+/* Oculta o círculo nativo */
+.accom-cards .ff-el-form-check input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px; height: 1px;
+}
+
+/* --- CARTÃO base --- */
+.accom-cards .ff-el-form-check {
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 14px;     /* menos padding */
+  background: #fff;
+  transition: all .2s ease;
+}
+
+/* Rótulo */
+.accom-cards .ff-el-form-check label {
+  display: block;
+  margin: 0;
+  text-align: center;
+  font-size: 15px;        /* mais pequeno que antes */
+  font-weight: 600;
+  color: #111827;
+  cursor: pointer;
+}
+
+/* Hover / foco */
+.accom-cards .ff-el-form-check:hover { 
+  border-color: #EFE8DC; 
+  background:#EFE8DC; 
+}
+.accom-cards .ff-el-form-check:focus-within { 
+  outline: 2px solid rgba(20,63,8,.35); 
+  outline-offset: 2px; 
+}
+
+/* Selecionado */
+.accom-cards .ff-el-form-check:has(input[type="radio"]:checked),
+.accom-cards .ff-el-form-check.is-checked {
+  border-color: #143F08 !important;
+  background: #143F08 !important;
+}
+.accom-cards .ff-el-form-check:has(input[type="radio"]:checked) label,
+.accom-cards .ff-el-form-check.is-checked label {
+  color: #fff !important;
+  font-weight: 700;
+}
+
+/* Força o alinhamento do título do campo Accommodation */
+#fluentform_3 .ff-el-group .ff-el-group__label 
+/* Força o título do campo à esquerda e com espaçamento consistente */
+#fluentform_3 .accom-cards .ff-el-input--label{
+  text-align:left !important;
+  display:block;
+  margin-bottom:8px;   /* espaço entre o título e os cartões */
+}
+
+/* Mantém o fieldset como bloco normal no desktop (não grid) */
+@media (min-width:768px){
+  #fluentform_3 .accom-cards{ display:block; }
+  /* A grelha de 2 colunas aplica-se APENAS às opções, não ao fieldset inteiro */
+  #fluentform_3 .accom-cards .ff-el-input--content{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:18px;
+  }
+  /* remove margens extra nos cartões dentro da grelha */
+  #fluentform_3 .accom-cards .ff-el-form-check{ margin:0; }
 }
