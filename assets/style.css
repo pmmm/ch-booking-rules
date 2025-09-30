@@ -1,0 +1,27 @@
+
+#ff-minnights-hint{
+  background:#f1f5f9;
+  border:1px dashed #cbd5e1;
+  padding:.5rem .75rem;
+  border-radius:.5rem;
+}
+.chbr-daily-rate{
+  display:inline-block;
+  margin-top:.35rem;
+  padding:.35rem .5rem;
+  font-size:.95em;
+  color:#0f172a;
+  background:#EFE8DC;
+  border:1px solid #e5e7eb;
+  border-radius:.5rem;
+}
+input[name="total"]{
+  font-size:1.8rem !important;
+  font-weight:800;
+  background:#F9FAFB !important;
+  border:2px solid #111827 !important;
+  text-align:right;
+  padding-right:16px;
+  height:56px;
+  border-radius:10px;
+}
