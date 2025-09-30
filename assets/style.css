@@ -1,78 +1,19 @@
-#ff-minnights-hint{
-  background:#f1f5f9;
-  border:1px dashed #cbd5e1;
-  padding:.5rem .75rem;
-  border-radius:.5rem;
-}
+/* Estilos adicionais para CH Booking Rules */
 .chbr-daily-rate{
   display:inline-block;
   margin-top:.35rem;
   padding:.35rem .5rem;
   font-size:.95em;
   color:#0f172a;
-  background:#EFE8DC;
+  background:#FEF8DC;
   border:1px solid #e5e7eb;
   border-radius:.5rem;
 }
-input[name="total"]{
-  font-size:1.8rem !important;
-  font-weight:800;
-  background:#F9FAFB !important;
-  border:2px solid #111827 !important;
-  text-align:right;
-  padding-right:16px;
-  height:56px;
-  border-radius:10px;
-}
-.chbr-field-error{
-  margin-top:.35rem;
-  font-size:.9rem;
-  color:#b42318;
-  background:#fdecea;
-  border:1px solid #f5c2c0;
-  border-radius:.35rem;
-  padding:.35rem .5rem;
-}
-.chbr-minnights-hint{
-  margin-top:.35rem;
-  font-size:.9rem;
-  background:#f1f5f9;
-  border:1px dashed #cbd5e1;
-  border-radius:.35rem;
-  padding:.35rem .5rem;
-}
-.chbr-daily-rate{
-  display:inline-block;
-  margin-top:.35rem;
-  padding:.35rem .5rem;
-  font-size:.95rem;
-  background:#fef3c7;
-  border:1px solid #fde68a;
-  border-radius:.35rem;
-}
-/* Espaçamento mobile nos botões de alojamento (radios estilo botão) */
-#fluentform_3 .ff-el-form-check {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem; /* espaço entre os botões */
-}
 
-#fluentform_3 .ff-el-form-check label {
-  margin: 0; /* anula margens internas que o tema possa pôr */
-}
-
-/* Garantir que a faixa "Preço por noite" encaixa bem */
-#fluentform_3 .chbr-daily-rate{
-  display:inline-block;
-  margin-top:.5rem;
-  padding:.35rem .6rem;
-  font-size:.95rem;
-  background:#fef3c7;
-  border:1px solid #fde68a;
-  border-radius:.35rem;
-}
-
-/* Ajuste extra só em ecrãs pequenos */
-@media (max-width: 640px){
-  #fluentform_3 .ff-el-form-check{ gap: .5rem .5rem; }
+/* Mobile buttons fix */
+@media (max-width: 768px){
+  .accom-cards .ff-el-form-check{
+    display:block !important;
+    margin-bottom:8px !important;
+  }
 }
