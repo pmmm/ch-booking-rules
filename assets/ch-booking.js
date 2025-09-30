@@ -1,10 +1,10 @@
 /* CH Booking Rules – Frontend
- * Lê config de CH_BOOKING_CFG (passada via wp_localize_script no PHP)
+ * Lê config de CH_BOOKING_CFG (passada via wp_localize_script no PHP).
  * - valida datas (passado, out>in)
  * - calcula nº de noites
- * - aplica mínimos por época e por promoção
- * - mostra mensagens localizadas (CFG.texts)
- * - calcula total com base em CFG.prices e promo code
+ * - mínimos por época e por promoção
+ * - preço por noite por alojamento + cálculo do total
+ * - textos configuráveis
  */
 ;(function ($, w, d) {
   'use strict';
@@ -13,7 +13,7 @@
   var CFG = w.CH_BOOKING_CFG || {};
   var FID = Number(CFG.form_id || 3);
 
-  // map dos names (permite renomear no FluentForms)
+  // Map names dos campos (permite renomear no FluentForms)
   var F = $.extend({
     check_in:       'check_in',
     check_out:      'check_out',
@@ -23,6 +23,7 @@
     promo_code:     'promo_code'
   }, (CFG.fields || {}));
 
+  // Textos (placeholders: {{MIN}}, {{PRICE}}, {{NAME}}, {{DISCOUNT}})
   var TXT = $.extend({
     label_daily:      'Preço por noite: {{PRICE}} €',
     hint_normal:      'Estadia mínima de {{MIN}} noites.',
@@ -38,42 +39,47 @@
 
   var SEASONS = Array.isArray(CFG.seasons) ? CFG.seasons : [];
   var PROMOS  = Array.isArray(CFG.promos)  ? CFG.promos  : [];
-  var PRICES  = CFG.prices || {}; // { "Carvalha Serra":160, ... }
+  var PRICES  = CFG.prices || {}; // {"Carvalha Serra":160, ...}
 
   // --------- HELPERS ---------
-  function formSel() { return '#fluentform_' + FID; }
-  function $form()   { return $(formSel()); }
+  function formSel(){ return '#fluentform_' + FID; }
+  function $form(){ return $(formSel()); }
   function $byName(n){ return $form().find('[name="'+ n +'"]'); }
 
   function tpl(str, obj){
     return String(str).replace(/\{\{(\w+)\}\}/g, function(_, k){ return (obj && obj[k] != null) ? obj[k] : ''; });
   }
-
   function dOnly(dt){ return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()); }
 
-  // aceita DD/MM/YYYY, DD-MM-YYYY e YYYY-MM-DD
+  // Parser de datas tolerante: YYYY-MM-DD | DD/MM/YYYY | DD-MM-YYYY | DD.MM.YYYY | DD/MM/YY
   function parseDate(s){
     if(!s) return null;
     s = String(s).trim();
     var m;
-    if (m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)) {
+    // YYYY-MM-DD ou YYYY/MM/DD
+    if (m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/)) {
       var y = +m[1], mo = +m[2]-1, d = +m[3];
       var dt = new Date(y, mo, d);
-      if (dt.getFullYear()===y && dt.getMonth()===mo && dt.getDate()===d) return dt;
-      return null;
+      return (dt.getFullYear()===y && dt.getMonth()===mo && dt.getDate()===d) ? dt : null;
     }
-    if (m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/)) {
+    // DD/MM/YYYY ou DD-MM-YYYY ou DD.MM.YYYY
+    if (m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/)) {
       var d2 = +m[1], mo2 = +m[2]-1, y2 = +m[3];
       var dt2 = new Date(y2, mo2, d2);
-      if (dt2.getFullYear()===y2 && dt2.getMonth()===mo2 && dt2.getDate()===d2) return dt2;
-      return null;
+      return (dt2.getFullYear()===y2 && dt2.getMonth()===mo2 && dt2.getDate()===d2) ? dt2 : null;
+    }
+    // DD/MM/YY (ano 2 dígitos → 20xx)
+    if (m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2})$/)) {
+      var d3 = +m[1], mo3 = +m[2]-1, y3 = 2000 + (+m[3]);
+      var dt3 = new Date(y3, mo3, d3);
+      return (dt3.getFullYear()===y3 && dt3.getMonth()===mo3 && dt3.getDate()===d3) ? dt3 : null;
     }
     return null;
   }
 
   function nightsBetween(a,b){
     var MS = 24*60*60*1000;
-    return Math.round( (dOnly(b)-dOnly(a))/MS );
+    return Math.round((dOnly(b)-dOnly(a))/MS);
   }
 
   function fmtDiscount(o){
@@ -83,24 +89,22 @@
     return '';
   }
 
-  // checa se uma data (M/D ignorando ano) está num intervalo de época
-  // season: {from:'MM-DD', to:'MM-DD', minNights: X}
+  // Está a data dentro da época (from/to no formato MM-DD, podendo atravessar o ano)
   function dateInSeason(date, season){
     if(!season || !season.from || !season.to) return false;
     var y = date.getFullYear();
-    var from = new Date(y, (+season.from.split('-')[0])-1, +season.from.split('-')[1]);
-    var to   = new Date(y, (+season.to.split('-')[0])-1,   +season.to.split('-')[1]);
+    var f = season.from.split('-'), t = season.to.split('-');
+    var from = new Date(y, +f[0]-1, +f[1]);
+    var to   = new Date(y, +t[0]-1, +t[1]);
 
-    // intervalos que atravessam o ano (ex.: 10-01 a 03-31)
-    if (to < from) {
-      // pertence se >= from (no ano Y) ou <= to (no ano Y+1)
+    if (to < from) { // ex.: 10-01 a 03-31
       var toNext = new Date(y+1, to.getMonth(), to.getDate());
       return (dOnly(date) >= dOnly(from)) || (dOnly(date) <= dOnly(toNext));
     }
     return dOnly(date) >= dOnly(from) && dOnly(date) <= dOnly(to);
   }
 
-  // devolve o mínimo de noites exigido para um intervalo (considera cada noite)
+  // Mínimo exigido considerando todas as noites do intervalo
   function minNightsForStay(checkIn, checkOut){
     if (!SEASONS.length) return 1;
     var min = 1, n = nightsBetween(checkIn, checkOut);
@@ -115,57 +119,62 @@
     return min;
   }
 
-  // acha uma promo ativa para o intervalo e/ou por código
+  // Promo ativa para a estadia, opcionalmente por código
   function findActivePromo(checkIn, checkOut, code){
-    var active = null;
-    var spanNights = nightsBetween(checkIn, checkOut);
+    var active = null, span = nightsBetween(checkIn, checkOut);
 
     PROMOS.forEach(function(p){
-      // datas são MM-DD; uma promo é válida se QUALQUER dia da estadia cair no intervalo
+      // alguma noite da estadia cai na promo?
       var matchAny = false;
-      for (var i=0;i<spanNights;i++){
+      for (var i=0;i<span;i++){
         var d = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate()+i);
         if (dateInSeason(d, {from:p.from, to:p.to})) { matchAny = true; break; }
       }
       if (!matchAny) return;
 
-      // se for promo por código, matcha código
-      if (p.code && code && String(code).trim().toUpperCase() === String(p.code).trim().toUpperCase()) {
+      // com código
+      if (p.code && code && String(code).trim().toUpperCase() === String(p.code).trim().toUpperCase()){
         if (!active || (p.priority||0) > (active.priority||0)) active = p;
         return;
       }
-      // se não exigir código, pode ser promo “aberta”
-      if (!p.code) {
+      // sem código
+      if (!p.code){
         if (!active || (p.priority||0) > (active.priority||0)) active = p;
       }
     });
     return active;
   }
 
-  function showError($el, msg){
-    clearError($el);
-    var $h = $('<div class="chbr-field-error" />').text(msg);
-    $el.attr('aria-invalid','true').addClass('ff-el-is-error');
-    $el.closest('.ff-el-form-control, .ff-el-group').append($h);
-  }
-  function clearError($el){
-    $el.attr('aria-invalid','false').removeClass('ff-el-is-error');
-    $el.closest('.ff-el-form-control, .ff-el-group').find('.chbr-field-error').remove();
-  }
-
-  function getAccomName(){
+  // --------- PRICE / ACCOM PATCH (aceita label OU value) ---------
+  function getAccomKey(){
     var $a = $byName(F.accommodation);
     if(!$a.length) return null;
-    // select/radio/text
-    if ($a.is('select')) return $a.find('option:selected').text().trim() || $a.val();
-    if ($a.is(':radio')) return $a.filter(':checked').val();
+
+    // SELECT
+    if ($a.is('select')) {
+      var txt = $a.find('option:selected').text().trim();
+      var val = $a.val();
+      if (PRICES.hasOwnProperty(txt)) return txt;
+      return val;
+    }
+
+    // RADIOS
+    var $r = $a.filter(':radio');
+    if ($r.length){
+      var $c   = $r.filter(':checked');
+      var val  = $c.val();
+      var lbl  = $c.closest('label').text().trim();
+      if (lbl && PRICES.hasOwnProperty(lbl)) return lbl;
+      return val;
+    }
+
+    // Texto/hidden
     return $a.val();
   }
 
   function pricePerNight(){
-    var name = getAccomName();
-    if(!name) return 0;
-    var p = PRICES[name];
+    var key = getAccomKey();
+    var p = PRICES[key];
     return Number(p || 0);
   }
 
@@ -174,16 +183,26 @@
     var $a = $byName(F.accommodation);
     if(!$a.length) return;
 
-    // container alvo
     var $wrap = $a.closest('.ff-el-form-control, .ff-el-group');
     $wrap.find('.chbr-daily-rate').remove();
 
     if (price > 0 && TXT.label_daily){
-      var $lbl = $('<div class="chbr-daily-rate" />').text(
-        tpl(TXT.label_daily, {PRICE: price})
-      );
-      $wrap.append($lbl);
+      $('<div class="chbr-daily-rate" />')
+        .text(tpl(TXT.label_daily, {PRICE: price}))
+        .appendTo($wrap);
     }
+  }
+
+  // --------- VALIDATE & COMPUTE ---------
+  function showError($el, msg){
+    clearError($el);
+    $('<div class="chbr-field-error" />').text(msg)
+      .appendTo($el.closest('.ff-el-form-control, .ff-el-group'));
+    $el.attr('aria-invalid','true').addClass('ff-el-is-error');
+  }
+  function clearError($el){
+    $el.attr('aria-invalid','false').removeClass('ff-el-is-error');
+    $el.closest('.ff-el-form-control, .ff-el-group').find('.chbr-field-error').remove();
   }
 
   function computeAndValidate(){
@@ -193,7 +212,6 @@
     var $tot = $byName(F.total);
     var $code= $byName(F.promo_code);
 
-    // limpar
     clearError($in); clearError($out);
 
     var din  = parseDate($in.val());
@@ -204,7 +222,6 @@
       if (din && dOnly(din) < today) showError($in, TXT.err_past_date);
       if (dout && dOnly(dout) < today) showError($out, TXT.err_past_date);
     }
-
     if (din && dout && dout <= din) {
       showError($out, TXT.err_out_before_in);
     }
@@ -212,11 +229,10 @@
     var nights = (din && dout) ? nightsBetween(din, dout) : 0;
     if ($n.length && nights>=0) $n.val(nights);
 
-    // mínimos por época/promo
     if (din && dout && nights > 0) {
+      // mínimos por época e promo
       var minSeason = minNightsForStay(din, dout);
       var promo = findActivePromo(din, dout, $code.val());
-
       var minRequired = minSeason;
       var hintTxt = tpl(TXT.hint_normal, {MIN:minSeason});
 
@@ -228,16 +244,16 @@
           : tpl(TXT.hint_promo,      {NAME: promo.name || '', DISCOUNT: disc, MIN:minRequired});
       }
 
-      // mostra/atualiza hint junto ao check-out
-      var $wrap = $out.closest('.ff-el-form-control, .ff-el-group');
-      $wrap.find('.chbr-minnights-hint').remove();
-      $('<div class="chbr-minnights-hint" />').text(hintTxt).appendTo($wrap);
+      // hint junto ao check-out
+      var $wrapOut = $out.closest('.ff-el-form-control, .ff-el-group');
+      $wrapOut.find('.chbr-minnights-hint').remove();
+      $('<div class="chbr-minnights-hint" />').text(hintTxt).appendTo($wrapOut);
 
       if (nights < minRequired){
         showError($out, tpl(TXT.err_min_nights, {MIN:minRequired}));
       }
 
-      // total: pricePerNight * nights, aplicando promo (se for percent/fixed)
+      // total = preço/noite * noites  (aplica promo se existir)
       var pNight = pricePerNight();
       var subtotal = pNight * nights;
       var total = subtotal;
@@ -251,12 +267,10 @@
       }
 
       if ($tot.length){
-        // garantir 2 casas decimais se for numérico
         var val = isFinite(total) ? (Math.round(total*100)/100).toFixed(2) : total;
         $tot.val(val);
       }
     } else {
-      // sem datas válidas remove hint
       $form().find('.chbr-minnights-hint').remove();
     }
   }
@@ -272,31 +286,31 @@
     return true;
   }
 
+  // --------- BIND ---------
   function bind(){
     var $f = $form();
     if (!$f.length) return;
 
-    // render preço por noite ao entrar e quando muda alojamento
+    // Preço por noite ao entrar e quando muda alojamento
     renderDailyRate();
     $f.on('change', '[name="'+F.accommodation+'"]', function(){
       renderDailyRate();
       computeAndValidate();
     });
 
-    // reagir a mudanças de datas e promo code
+    // Reagir a mudanças de datas e promo code
     $f.on('change blur', '[name="'+F.check_in+'"], [name="'+F.check_out+'"], [name="'+F.promo_code+'"]', function(e){
       if (RESET_ON_IN && e && e.target && $(e.target).attr('name')===F.check_in){
-        // se mudou check-in e houver check-out preenchido, limpa para forçar reescolha válida
         var $out = $byName(F.check_out);
         if ($out.val()) { $out.val(''); $form().find('.chbr-minnights-hint').remove(); }
       }
       computeAndValidate();
     });
 
-    // ao submeter, bloqueia se houver erros
+    // Bloquear submissão se houver erros
     $f.on('submit', preventIfErrors);
 
-    // 1ª validação
+    // Primeira validação
     computeAndValidate();
   }
 
