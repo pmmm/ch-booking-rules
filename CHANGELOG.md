@@ -5,6 +5,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-PT/1.0.0/)
 e este projeto adota [Semantic Versioning](https://semver.org/lang/pt-PT/).
 
 ---
+## [2.0.0] - 2025-10-01
+### Adicionado
+- Nova interface gráfica (GUI) para a gestão de regras de reservas.
+- Implementação de abas para separar a configuração de "Épocas & Mínimos", "Promoções & Códigos" e "Avançado".
+- Campos repetíveis para a gestão de Regras de Épocas, eliminando a necessidade de editar diretamente o código JSON.
+
+### Melhorado
+- Migração da gestão de configurações de JSON para um sistema de formulários amigável.
+- Código PHP reestruturado para suportar a nova interface.
+
 ## [1.3.11] - 2025-10-01
 ### Corrigido
 - Corrigido um loop infinito no cálculo de datas e valores que impedia o datepicker de abrir, causado por disparar o evento 'change' em campos calculados (noites e total).
