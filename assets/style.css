@@ -178,7 +178,7 @@
   text-align: center;
 }
 
-/* Estilo para Mensagem de Erro de Noites Mínimas (usando a classe de erro nativa do FF) */
+/* Estilo para Mensagem de Erro de Noites Mínimas */
 #chbr-minnights-error {
   display: none;
   background: #fee2e2; /* Vermelho claro */
@@ -189,4 +189,13 @@
   margin-bottom: 5px;
   border-radius: 6px;
   font-weight: 600;
+}
+
+/* CORREÇÃO VISUAL PARA ELIMINAR O CALENDÁRIO DUPLICADO/FANTASMA */
+/* Assume que o calendário duplicado é o último a ser carregado */
+.ui-datepicker:last-of-type {
+    z-index: 9999 !important; /* Garante que o calendário certo está no topo */
+}
+.ui-datepicker.ui-datepicker-multi:last-of-type {
+    display: none !important;
 }
