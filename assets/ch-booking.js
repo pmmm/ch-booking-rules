@@ -70,7 +70,6 @@ jQuery(function($){
     var minNightsRequired = 0; // Inicializar
 
     // 1. CÁLCULO BASE (preço normal)
-    // CORREÇÃO CRÍTICA: LER O VALOR DO BOTÃO DE RÁDIO SELECIONADO
     var accom = $form.find('[name="'+F.accommodation+'"]:checked').val() || ''; 
     
     dailyRate = CFG.prices && CFG.prices[accom] ? CFG.prices[accom] : 0;
