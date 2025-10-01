@@ -14,7 +14,6 @@ jQuery(function($){
 
   function daysBetween(d1,d2){ return Math.round((d2-d1)/(1000*60*60*24)); }
 
-  // 1. CORREÇÃO: Definir today à meia-noite (00:00:00)
   var today_midnight = new Date();
   today_midnight.setHours(0, 0, 0, 0); 
 
@@ -22,14 +21,22 @@ jQuery(function($){
   var $checkOut = $form.find('[name="'+F.check_out+'"]');
   var $promoCode = $form.find('[name="'+F.promo_code+'"]'); 
   
-  // Adicionar o elemento de mensagem de sucesso para o código promocional
+  // --- INICIALIZAÇÃO DAS MENSAGENS ---
+  
+  // Mensagem de sucesso do código promocional
   var $promoCodeGroup = $promoCode.closest('.ff-el-group');
   if (!$('#chbr-promo-success').length) {
       $promoCodeGroup.after('<div id="chbr-promo-success"></div>');
   }
   var $promoSuccessMsg = $('#chbr-promo-success');
+
+  // Mensagem de ERRO do código promocional (estava em falta)
+  if (!$('#chbr-promo-error').length) {
+      $promoCodeGroup.after('<div id="chbr-promo-error"></div>');
+  }
+  var $promoErrorMsg = $('#chbr-promo-error');
   
-  // Adicionar o elemento de erro de noites mínimas
+  // Mensagem de erro de noites mínimas
   if (!$('#chbr-minnights-error').length) {
       $checkOut.closest('.ff-el-group').after('<div id="chbr-minnights-error" class="ff-error-message"></div>');
   }
@@ -40,7 +47,6 @@ jQuery(function($){
     var ci = parseDMY($checkIn.val());
     var co = parseDMY($checkOut.val());
     
-    // 2. Lógica para atualizar dinamicamente o minDate do Check-Out
     if (ci) {
         var min_co_date = new Date(ci);
         min_co_date.setDate(ci.getDate() + 1);
@@ -57,7 +63,6 @@ jQuery(function($){
     } else {
         $checkOut.datepicker('option', 'minDate', today_midnight);
     }
-    // Fim da Lógica de Datas
 
     var nights = ci && co ? daysBetween(ci,co) : 0;
     
@@ -66,21 +71,17 @@ jQuery(function($){
     var dailyRate = 0;
     var total = 0;
     var promoApplied = false;
-    var minNightsRequired = 0; // Inicializar
+    var minNightsRequired = 0;
 
-    // 1. CÁLCULO BASE (preço normal)
     var accom = $form.find('[name="'+F.accommodation+'"]:checked').val() || ''; 
-    
     dailyRate = CFG.prices && CFG.prices[accom] ? CFG.prices[accom] : 0;
     
-    // NOVO: LÓGICA DE UX DO PREÇO INICIAL
     if (nights === 0 && dailyRate > 0 && accom) {
-        total = dailyRate; // Se a acomodação for escolhida mas as noites não, mostra o preço por noite
+        total = dailyRate;
     } else {
-        total = nights * dailyRate; // Se as noites forem preenchidas, calcula o total
+        total = nights * dailyRate;
     }
 
-    // 2. ENCONTRAR O MÍNIMO DE NOITES (LÓGICA CRÍTICA)
     if (ci && CFG.seasons && CFG.seasons.length) {
         var checkInMonthDay = (ci.getMonth() + 1).toString().padStart(2, '0') + '-' + ci.getDate().toString().padStart(2, '0');
 
@@ -89,22 +90,24 @@ jQuery(function($){
             var from = season.from;
             var to = season.to;
             
-            if (from && to && checkInMonthDay >= from && checkInMonthDay <= to) {
-                if (min > minNightsRequired) {
-                    minNightsRequired = min;
+            // Lógica de épocas que atravessam o ano (ex: Dezembro a Março)
+            if (from > to) { 
+                if (checkInMonthDay >= from || checkInMonthDay <= to) {
+                    if (min > minNightsRequired) minNightsRequired = min;
+                }
+            } else {
+                if (checkInMonthDay >= from && checkInMonthDay <= to) {
+                    if (min > minNightsRequired) minNightsRequired = min;
                 }
             }
         });
     }
     
-    // Regra global (garante mínimo de 2 noites se nenhuma regra for aplicada ou for inferior)
-    if (minNightsRequired < 2) {
-        minNightsRequired = 2; 
+    if (minNightsRequired < 1) { // Mínimo de 1 noite por defeito
+        minNightsRequired = 1; 
     }
 
-    // 3. APLICAÇÃO DO DESCONTO
     if (promoCodeValue && dailyRate > 0 && nights > 0 && CFG.promos && CFG.promos.length) {
-        
         CFG.promos.forEach(function(promo){
             if(promo.code && promo.code.toUpperCase() === promoCodeValue) {
                 var minNightsReqPromo = parseInt(promo.minNights || 0);
@@ -116,7 +119,6 @@ jQuery(function($){
 
         if (activePromo) {
             var discountValue = parseFloat(activePromo.discount.value);
-            
             if (activePromo.discount.type === 'percent') {
                 total = total * (1 - discountValue / 100);
             } else if (activePromo.discount.type === 'fixed') {
@@ -126,14 +128,12 @@ jQuery(function($){
         }
     }
 
-    // 4. VALIDAÇÃO E MENSAGENS
     var nightsValid = true;
     if (nights > 0 && nights < minNightsRequired) {
-        total = 0; // Zera o total para indicar que a reserva é inválida
+        total = 0;
         nightsValid = false;
     }
     
-    // MENSAGEM DE NOITES MÍNIMAS
     if (!nightsValid && ci && co) {
         var msg = CFG.texts.err_min_nights.replace('{{MIN}}', minNightsRequired);
         $minNightsErrorMsg.text(msg).show();
@@ -141,54 +141,58 @@ jQuery(function($){
         $minNightsErrorMsg.hide().text('');
     }
 
-    // MENSAGEM DE CÓDIGO PROMOCIONAL
     if (promoApplied) {
         $promoSuccessMsg
-            .text(CFG.texts.hint_promo_code.replace('{{NAME}}', activePromo.name).replace('{{DISCOUNT}}', activePromo.discount.value + (activePromo.discount.type === 'percent' ? '%' : '€')).replace('{{MIN}}', activePromo.minNights))
+            .text(CFG.texts.hint_promo_code.replace('{{NAME}}', activePromo.name).replace('{{DISCOUNT}}', activePromo.discount.value + (activePromo.discount.type === 'percent' ? '%' : '€')).replace('{{MIN}}', active-Promo.minNights))
             .show();
-        $promoErrorMsg.hide().text(''); // Esconder erro se for sucesso
-    } else if (promoCodeValue && !promoApplied) {
-        // Se inseriu código e não aplicou (código inválido/noites mínimas)
-        $promoErrorMsg.text('ERRO: O código promocional é inválido ou as noites mínimas não foram cumpridas.').show();
+        $promoErrorMsg.hide().text('');
+    } else if (promoCodeValue && !promoApplied && nights > 0) {
+        $promoErrorMsg.text('O código promocional é inválido ou não cumpre as noites mínimas.').show();
         $promoSuccessMsg.hide().text('');
     } else {
-        // Esconder ambas as mensagens se o campo estiver vazio
         $promoSuccessMsg.hide().text('');
         $promoErrorMsg.hide().text('');
     }
 
-    // *** ATUALIZAÇÃO DOS CAMPOS ***
-    if(nights>0) $form.find('[name="'+F.nights+'"]').val(nights);
-    $form.find('[name="'+F.total+'"]').val(total.toFixed(2));
+    // ATUALIZAÇÃO DOS CAMPOS (sem disparar "change" para evitar loop)
+    var $nightsField = $form.find('[name="'+F.nights+'"]');
+    if ($nightsField.val() != nights) {
+        $nightsField.val(nights);
+    }
+    
+    var $totalField = $form.find('[name="'+F.total+'"]');
+    if ($totalField.val() != total.toFixed(2)) {
+        $totalField.val(total.toFixed(2));
+    }
   }
 
-  // Inicializar datepickers - SOLUÇÃO FINAL PARA SOBREPOSIÇÃO
+  // --- INICIALIZAÇÃO DOS COMPONENTES E EVENTOS ---
+
+  // Inicializar datepickers
   var fields = [$checkIn, $checkOut];
-  
   fields.forEach(function($field) {
-      if ($field.hasClass('hasDatepicker') && typeof $field.datepicker === 'function') {
-          // Destruir qualquer inicialização anterior para evitar sobreposição
+      if ($field.hasClass('hasDatepicker')) {
           $field.datepicker('destroy');
       }
-      
-      if (typeof $field.datepicker === 'function') {
-        // CORREÇÃO FINAL DA SOBREPOSIÇÃO: Desliga o foco e inicializa
-        $field.off('focus').datepicker({
-            dateFormat: 'dd/mm/yy',
-            minDate: today_midnight, 
-            onSelect: update
-        });
-      }
+      $field.datepicker({
+          dateFormat: 'dd/mm/yy',
+          minDate: today_midnight, 
+          onSelect: update // Apenas o onSelect chama o update
+      });
   });
 
-  // NOVO: Garantir que o campo TOTAL é APENAS DE LEITURA (read-only)
+  // Garantir que o campo TOTAL é apenas de leitura
   $form.find('[name="'+F.total+'"]').attr('readonly', 'readonly'); 
   
-  // NOVO: Garantir que o clique nos cartões de alojamento dispara o update
+  // === CORREÇÃO DO LOOP INFINITO ===
+  // Removemos o .on('change') genérico e adicionamos detetores específicos
+  
+  // 1. Detetor para os cartões de alojamento
   $form.find('[name="'+F.accommodation+'"]').on('click', update); 
 
-  // Este é o único local onde o update deve ser chamado por um evento de 'change'.
-  $form.on('change','[name]', update); 
-  
+  // 2. Detetor para o campo de código promocional
+  $promoCode.on('input', update);
+
+  // Execução inicial para configurar o estado do formulário
   update();
 });
