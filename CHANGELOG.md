@@ -5,6 +5,11 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-PT/1.0.0/)
 e este projeto adota [Semantic Versioning](https://semver.org/lang/pt-PT/).
 
 ---
+## [2.0.1] - 2025-10-01
+### Corrigido
+- Finalizada a implementação da interface de gestão de Promoções e Códigos (Backend UX).
+- Corrigida a lógica de guardar dados na função `save_settings` para processar corretamente os dados do novo formulário de Promoções.
+
 ## [2.0.0] - 2025-10-01
 ### Adicionado
 - Nova interface gráfica (GUI) para a gestão de regras de reservas.
