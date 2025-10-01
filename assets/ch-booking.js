@@ -7,10 +7,9 @@ jQuery(function($){
 
   function parseDMY(s){
     if(!s) return null;
-    // Removida a aspas e parênteses desnecessários
     var m = String(s).trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/); 
     if(!m) return null;
-    // CORRIGIDO O ERRO DE SINTAXE (Token)
+    // CORREÇÃO FINAL: Removido o parêntese extra (resolvido o erro de sintaxe)
     return new Date(m[3].length==2?('20'+m[3]):m[3], m[2]-1, m[1]); 
   }
 
@@ -71,10 +70,13 @@ jQuery(function($){
     var minNightsRequired = 0; // Inicializar
 
     // 1. CÁLCULO BASE (preço normal)
-    var accom = $form.find('[name="'+F.accommodation+'"]').val() || ''; 
-    if (!accom) { 
-      accom = $form.find('[name="'+F.accom+'"]').val() || ''; 
-    }
+    // CORREÇÃO CRÍTICA: LER O VALOR DO BOTÃO DE RÁDIO SELECIONADO
+    var accom = $form.find('[name="'+F.accommodation+'"]:checked').val() || ''; 
+    
+    // DEBUGGING CRÍTICO
+    console.log('--- UPDATE INICIADO ---');
+    console.log('Acomodação lida (Valor/Label):', accom);
+    // ----------------------
     
     dailyRate = CFG.prices && CFG.prices[accom] ? CFG.prices[accom] : 0;
     
@@ -129,6 +131,10 @@ jQuery(function($){
             }
             promoApplied = true;
         }
+        // NOVO: Se o código foi inserido mas falhou a aplicação, mostramos erro
+        if (!activePromo) {
+             $promoErrorMsg.text('ERRO: O código promocional é inválido ou as noites mínimas não foram cumpridas.').show();
+        }
     }
 
     // 4. VALIDAÇÃO E MENSAGENS
@@ -151,9 +157,13 @@ jQuery(function($){
         $promoSuccessMsg
             .text(CFG.texts.hint_promo_code.replace('{{NAME}}', activePromo.name).replace('{{DISCOUNT}}', activePromo.discount.value + (activePromo.discount.type === 'percent' ? '%' : '€')).replace('{{MIN}}', activePromo.minNights))
             .show();
-    } else {
+        $promoErrorMsg.hide().text(''); // Esconder erro se for sucesso
+    } else if (!promoCodeValue) {
+        // Esconder ambas as mensagens se o campo estiver vazio
         $promoSuccessMsg.hide().text('');
+        $promoErrorMsg.hide().text('');
     }
+
 
     // *** ATUALIZAÇÃO DOS CAMPOS ***
     if(nights>0) $form.find('[name="'+F.nights+'"]').val(nights);
@@ -170,7 +180,7 @@ jQuery(function($){
       }
       
       if (typeof $field.datepicker === 'function') {
-        // CORREÇÃO FINAL DA SOBREPOSIÇÃO
+        // CORREÇÃO FINAL DA SOBREPOSIÇÃO: Desliga o foco e inicializa
         $field.off('focus').datepicker({
             dateFormat: 'dd/mm/yy',
             minDate: today_midnight, 
@@ -178,6 +188,9 @@ jQuery(function($){
         });
       }
   });
+
+  // NOVO: Garantir que o clique nos cartões de alojamento dispara o update
+  $form.find('[name="'+F.accommodation+'"]').on('click', update); 
 
   // Este é o único local onde o update deve ser chamado por um evento de 'change'.
   $form.on('change','[name]', update); 
