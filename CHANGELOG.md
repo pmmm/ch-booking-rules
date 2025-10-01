@@ -5,6 +5,35 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-PT/1.0.0/)
 e este projeto adota [Semantic Versioning](https://semver.org/lang/pt-PT/).
 
 ---
+
+
+# Changelog — CH Booking Rules
+
+Todas as alterações notáveis a este projeto serão documentadas neste ficheiro.
+O formato segue [Keep a Changelog](https://keepachangelog.com/pt-PT/1.0.0/)
+e este projeto adota [Semantic Versioning](https://semver.org/lang/pt-PT/).
+
+---
+## [2.1.0] - 2025-10-01
+### Adicionado
+- Suporte à localização nativa do calendário (jQuery UI Datepicker) para resolver conflitos com plugins de tradução como o TranslatePress.
+
+### Melhorado
+- O bloqueio de datas passadas é agora delegado à configuração nativa do Fluent Forms (`Advanced Date Configuration`), aumentando a compatibilidade e robustez do plugin.
+
+### Removido
+- Código de inicialização do datepicker foi removido do `ch-booking.js` para eliminar a fonte de potenciais conflitos com o Fluent Forms.
+
+## [2.0.27] - 2025-10-01
+### Corrigido
+- Corrigido um erro de referência em JavaScript (`ReferenceError`) que impedia a mensagem de sucesso do código promocional de ser exibida.
+- Restaurada a lógica de reatividade do formulário, garantindo que a validade do código promocional é recalculada quando as datas são alteradas.
+- Corrigido o comportamento de reinicialização dos campos "Nº de Noites" e "Valor Total" ao limpar as datas.
+
+## [2.0.26] - 2025-10-01
+### Corrigido
+- Resolvido um loop infinito (`Maximum call stack size exceeded`) no JavaScript do formulário, que era causado por um detetor de eventos `change` demasiado genérico. Esta correção estabilizou o formulário e eliminou os erros na consola.
+
 ## [2.0.1] - 2025-10-01
 ### Corrigido
 - Finalizada a implementação da interface de gestão de Promoções e Códigos (Backend UX).
@@ -27,8 +56,11 @@ e este projeto adota [Semantic Versioning](https://semver.org/lang/pt-PT/).
 ### Melhorado
 - Estabilidade geral do frontend ao calcular o número de noites e o valor total.
 
-## [1.3.10] - 2025-09-30 ### Corrigido 
-- Bloqueio de datas no datepicker do check-in (garante que minDate é a meia-noite de hoje). ### Melhorado - minDate do check-out é agora dinâmico, forçando a seleção de datas no dia seguinte ao check-in.
+## [1.3.10] - 2025-09-30
+### Corrigido
+- Bloqueio de datas no datepicker do check-in (garante que minDate é a meia-noite de hoje).
+### Melhorado
+- minDate do check-out é agora dinâmico, forçando a seleção de datas no dia seguinte ao check-in.
 
 ## [1.3.8] - 2025-09-30
 - Datepicker: bloqueio visual de datas anteriores à de hoje + `minDate` dinâmico no check-out.
@@ -36,18 +68,16 @@ e este projeto adota [Semantic Versioning](https://semver.org/lang/pt-PT/).
 - Parser de datas mais tolerante (DD/MM/YY, `.` como separador, etc.).
 - Pequenos ajustes de UX e mensagens.
 
-
 ## [1.3.6] - Em desenvolvimento
 ### Adicionado
-- Validação para impedir reservas com datas no passado.  
-- Melhor tratamento de formatos de data (`DD/MM/YYYY` e `DD-MM-YYYY`).  
+- Validação para impedir reservas com datas no passado.
+- Melhor tratamento de formatos de data (`DD/MM/YYYY` e `DD-MM-YYYY`).
 
 ---
 
 ## [1.3.5] - 2025-09-30
 ### Adicionado
-- Primeira versão pública do plugin.  
-- Validação básica de check-in / check-out.  
-- Cálculo automático do número de noites.  
-- Estrutura inicial de integração com FluentForms.  
-
+- Primeira versão pública do plugin.
+- Validação básica de check-in / check-out.
+- Cálculo automático do número de noites.
+- Estrutura inicial de integração com FluentForms.
