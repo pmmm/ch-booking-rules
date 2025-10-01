@@ -10,7 +10,7 @@ jQuery(function($){
     // Removida a aspas e parênteses desnecessários
     var m = String(s).trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/); 
     if(!m) return null;
-    // Corrigido o erro de sintaxe: removido o parêntese extra
+    // CORRIGIDO O ERRO DE SINTAXE (Token)
     return new Date(m[3].length==2?('20'+m[3]):m[3], m[2]-1, m[1]); 
   }
 
@@ -77,8 +77,13 @@ jQuery(function($){
     }
     
     dailyRate = CFG.prices && CFG.prices[accom] ? CFG.prices[accom] : 0;
-    total = nights * dailyRate; // Preço base
-
+    
+    // NOVO: LÓGICA DE UX DO PREÇO INICIAL
+    if (nights === 0 && dailyRate > 0 && accom) {
+        total = dailyRate; // Se a acomodação for escolhida mas as noites não, mostra o preço por noite
+    } else {
+        total = nights * dailyRate; // Se as noites forem preenchidas, calcula o total
+    }
 
     // 2. ENCONTRAR O MÍNIMO DE NOITES (LÓGICA CRÍTICA)
     if (ci && CFG.seasons && CFG.seasons.length) {
@@ -165,7 +170,8 @@ jQuery(function($){
       }
       
       if (typeof $field.datepicker === 'function') {
-        $field.datepicker({
+        // CORREÇÃO FINAL DA SOBREPOSIÇÃO
+        $field.off('focus').datepicker({
             dateFormat: 'dd/mm/yy',
             minDate: today_midnight, 
             onSelect: update
