@@ -14,7 +14,7 @@ jQuery(function($){
 
   function daysBetween(d1,d2){ return Math.round((d2-d1)/(1000*60*60*24)); }
 
-  // 1. CORREÇÃO: Definir today à meia-noite (00:00:00)
+  // 1. CORREÇÃO: Definir today à meia-noite (00:00:00) para evitar problemas de fuso horário/hora atual.
   var today_midnight = new Date();
   today_midnight.setHours(0, 0, 0, 0); 
 
@@ -65,17 +65,17 @@ jQuery(function($){
 
   // Inicializar datepickers - Separado para controlo do minDate
   
-  // 1. Inicializar Check-In
+  // 1. Inicializar Check-In: Usa today_midnight para bloquear o passado!
   $checkIn.datepicker({
     dateFormat: 'dd/mm/yy',
-    minDate: today_midnight, 
+    minDate: today_midnight, // ÚNICA ENTRADA
     onSelect: update
   });
   
   // 2. Inicializar Check-Out
   $checkOut.datepicker({
     dateFormat: 'dd/mm/yy',
-    minDate: today_midnight, 
+    minDate: today_midnight, // ÚNICA ENTRADA (será atualizada por update())
     onSelect: update
   });
 
