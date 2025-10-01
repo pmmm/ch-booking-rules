@@ -14,13 +14,12 @@ jQuery(function($){
 
   function daysBetween(d1,d2){ return Math.round((d2-d1)/(1000*60*60*24)); }
 
-  // 1. CORREÇÃO: Definir today à meia-noite (00:00:00)
+  // 1. CORREÇÃO: Definir today à meia-noite (00:00:00) para evitar problemas de fuso horário/hora atual.
   var today_midnight = new Date();
   today_midnight.setHours(0, 0, 0, 0); 
 
   var $checkIn = $form.find('[name="'+F.check_in+'"]');
   var $checkOut = $form.find('[name="'+F.check_out+'"]');
-  // NOVO: Selecionar o campo do código promocional
   var $promoCode = $form.find('[name="'+F.promo_code+'"]'); 
 
 
@@ -51,27 +50,54 @@ jQuery(function($){
     
     // *** NOVA LINHA: Obter o valor do código promocional ***
     var promoCodeValue = $promoCode.val().trim().toUpperCase(); 
+    var activePromo = null; 
+    var dailyRate = 0;
+    var total = 0;
 
-    // *** Lógica de Cálculo (Aqui deve ser implementada a verificação do promoCodeValue contra CFG.promos) ***
-
+    // 1. CÁLCULO BASE (preço normal)
     var accom = $form.find('[name="'+F.accommodation+'"]').val() || ''; 
     if (!accom) { 
       accom = $form.find('[name="'+F.accom+'"]').val() || ''; 
     }
-    var total = 0;
-    if(accom && CFG.prices && CFG.prices[accom]){
-      total = nights * CFG.prices[accom];
-      // Futuro: Aplicar desconto se promoCodeValue corresponder a uma regra em CFG.promos
-    }
     
-    // *** CORREÇÃO DO LOOP INFINITO ***
+    dailyRate = CFG.prices && CFG.prices[accom] ? CFG.prices[accom] : 0;
+    total = nights * dailyRate; // Preço base
+
+    // 2. LÓGICA DE PROMOÇÃO (Correção do Código Promocional)
+    if (promoCodeValue && dailyRate > 0 && nights > 0 && CFG.promos && CFG.promos.length) {
+        
+        // Iterar sobre as promoções
+        CFG.promos.forEach(function(promo){
+            if(promo.code && promo.code.toUpperCase() === promoCodeValue) {
+                var minNightsReq = parseInt(promo.minNights || 0);
+                if (nights >= minNightsReq) {
+                    activePromo = promo;
+                }
+            }
+        });
+
+        if (activePromo) {
+            var discountValue = parseFloat(activePromo.discount.value);
+            
+            if (activePromo.discount.type === 'percent') {
+                total = total * (1 - discountValue / 100);
+            } else if (activePromo.discount.type === 'fixed') {
+                // Desconto fixo aplicado ao total
+                total = Math.max(0, total - discountValue); 
+            }
+            // Futuro: Mostrar CFG.texts.hint_promo_code
+        }
+    }
+
+    // *** ATUALIZAÇÃO DOS CAMPOS ***
+    // CORREÇÃO DO LOOP INFINITO
     if(nights>0) $form.find('[name="'+F.nights+'"]').val(nights);
     $form.find('[name="'+F.total+'"]').val(total.toFixed(2));
   }
 
   // Inicializar datepickers - Separado para controlo do minDate
   
-  // NOVO: Adiciona a verificação hasDatepicker para evitar sobreposições
+  // NOVO: Adiciona a verificação hasDatepicker para evitar sobreposições (Double Datepicker)
   if (!$checkIn.hasClass('hasDatepicker')) {
     // 1. Inicializar Check-In
     $checkIn.datepicker({
@@ -81,7 +107,7 @@ jQuery(function($){
     });
   }
   
-  // NOVO: Adiciona a verificação hasDatepicker para evitar sobreposições
+  // NOVO: Adiciona a verificação hasDatepicker para evitar sobreposições (Double Datepicker)
   if (!$checkOut.hasClass('hasDatepicker')) {
     // 2. Inicializar Check-Out
     $checkOut.datepicker({
@@ -92,7 +118,6 @@ jQuery(function($){
   }
 
   // Este é o único local onde o update deve ser chamado por um evento de 'change'.
-  // Incluindo o campo de promo_code!
   $form.on('change','[name]', update); 
   
   update();
