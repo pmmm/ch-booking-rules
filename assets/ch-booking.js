@@ -21,40 +21,27 @@ jQuery(function($){
   var $checkOut = $form.find('[name="'+F.check_out+'"]');
   var $promoCode = $form.find('[name="'+F.promo_code+'"]'); 
   
-  // --- INICIALIZAÇÃO DAS MENSAGENS ---
-  
-  // Mensagem de sucesso do código promocional
+  // Inicializar elementos de mensagem
   var $promoCodeGroup = $promoCode.closest('.ff-el-group');
-  if (!$('#chbr-promo-success').length) {
-      $promoCodeGroup.after('<div id="chbr-promo-success"></div>');
-  }
+  if (!$('#chbr-promo-success').length) { $promoCodeGroup.after('<div id="chbr-promo-success"></div>'); }
   var $promoSuccessMsg = $('#chbr-promo-success');
 
-  // Mensagem de ERRO do código promocional (estava em falta)
-  if (!$('#chbr-promo-error').length) {
-      $promoCodeGroup.after('<div id="chbr-promo-error"></div>');
-  }
+  if (!$('#chbr-promo-error').length) { $promoCodeGroup.after('<div id="chbr-promo-error"></div>'); }
   var $promoErrorMsg = $('#chbr-promo-error');
   
-  // Mensagem de erro de noites mínimas
-  if (!$('#chbr-minnights-error').length) {
-      $checkOut.closest('.ff-el-group').after('<div id="chbr-minnights-error" class="ff-error-message"></div>');
-  }
+  if (!$('#chbr-minnights-error').length) { $checkOut.closest('.ff-el-group').after('<div id="chbr-minnights-error" class="ff-error-message"></div>'); }
   var $minNightsErrorMsg = $('#chbr-minnights-error');
-
 
   function update(){
     var ci = parseDMY($checkIn.val());
     var co = parseDMY($checkOut.val());
     
+    // Atualizar minDate do check-out com base no check-in
     if (ci) {
         var min_co_date = new Date(ci);
         min_co_date.setDate(ci.getDate() + 1);
-
         $checkOut.datepicker('option', 'minDate', min_co_date);
-
-        var nights_calc = daysBetween(ci, co);
-        if (nights_calc <= 0 && co) { 
+        if (co && co <= ci) {
              if(CFG.resetCheckoutOnCheckinChange){ 
                 $checkOut.val('');
                 co = null; 
@@ -64,8 +51,7 @@ jQuery(function($){
         $checkOut.datepicker('option', 'minDate', today_midnight);
     }
 
-    var nights = ci && co ? daysBetween(ci,co) : 0;
-    
+    var nights = ci && co && co > ci ? daysBetween(ci,co) : 0;
     var promoCodeValue = $promoCode.val().trim().toUpperCase(); 
     var activePromo = null; 
     var dailyRate = 0;
@@ -76,47 +62,32 @@ jQuery(function($){
     var accom = $form.find('[name="'+F.accommodation+'"]:checked').val() || ''; 
     dailyRate = CFG.prices && CFG.prices[accom] ? CFG.prices[accom] : 0;
     
-    if (nights === 0 && dailyRate > 0 && accom) {
-        total = dailyRate;
-    } else {
-        total = nights * dailyRate;
-    }
+    total = nights * dailyRate;
 
+    // Determinar noites mínimas para a época
     if (ci && CFG.seasons && CFG.seasons.length) {
         var checkInMonthDay = (ci.getMonth() + 1).toString().padStart(2, '0') + '-' + ci.getDate().toString().padStart(2, '0');
-
         CFG.seasons.forEach(function(season){
             var min = parseInt(season.minNights || 0);
             var from = season.from;
             var to = season.to;
-            
-            // Lógica de épocas que atravessam o ano (ex: Dezembro a Março)
             if (from > to) { 
-                if (checkInMonthDay >= from || checkInMonthDay <= to) {
-                    if (min > minNightsRequired) minNightsRequired = min;
-                }
+                if (checkInMonthDay >= from || checkInMonthDay <= to) { if (min > minNightsRequired) minNightsRequired = min; }
             } else {
-                if (checkInMonthDay >= from && checkInMonthDay <= to) {
-                    if (min > minNightsRequired) minNightsRequired = min;
-                }
+                if (checkInMonthDay >= from && checkInMonthDay <= to) { if (min > minNightsRequired) minNightsRequired = min; }
             }
         });
     }
-    
-    if (minNightsRequired < 1) { // Mínimo de 1 noite por defeito
-        minNightsRequired = 1; 
-    }
+    if (minNightsRequired < 1) { minNightsRequired = 1; }
 
+    // Aplicar código de desconto
     if (promoCodeValue && dailyRate > 0 && nights > 0 && CFG.promos && CFG.promos.length) {
         CFG.promos.forEach(function(promo){
             if(promo.code && promo.code.toUpperCase() === promoCodeValue) {
-                var minNightsReqPromo = parseInt(promo.minNights || 0);
-                if (nights >= minNightsReqPromo) {
-                    activePromo = promo;
-                }
+                var minNightsReqPromo = parseInt(promo.minNights || 1);
+                if (nights >= minNightsReqPromo) { activePromo = promo; }
             }
         });
-
         if (activePromo) {
             var discountValue = parseFloat(activePromo.discount.value);
             if (activePromo.discount.type === 'percent') {
@@ -128,25 +99,22 @@ jQuery(function($){
         }
     }
 
-    var nightsValid = true;
-    if (nights > 0 && nights < minNightsRequired) {
-        total = 0;
-        nightsValid = false;
-    }
-    
-    if (!nightsValid && ci && co) {
+    // Validações e Mensagens de Erro
+    var nightsValid = (nights === 0 || nights >= minNightsRequired);
+    if (!nightsValid) {
+        total = 0; // Se as noites são inválidas, o total é zero
         var msg = CFG.texts.err_min_nights.replace('{{MIN}}', minNightsRequired);
         $minNightsErrorMsg.text(msg).show();
     } else {
         $minNightsErrorMsg.hide().text('');
     }
 
+    // Mensagens do Código Promocional
     if (promoApplied) {
-        $promoSuccessMsg
-            .text(CFG.texts.hint_promo_code.replace('{{NAME}}', activePromo.name).replace('{{DISCOUNT}}', activePromo.discount.value + (activePromo.discount.type === 'percent' ? '%' : '€')).replace('{{MIN}}', active-Promo.minNights))
-            .show();
+        // CORREÇÃO: Corrigido o erro de 'active-Promo' para 'activePromo'
+        $promoSuccessMsg.text(CFG.texts.hint_promo_code.replace('{{NAME}}', activePromo.name).replace('{{DISCOUNT}}', activePromo.discount.value + (activePromo.discount.type === 'percent' ? '%' : '€')).replace('{{MIN}}', activePromo.minNights)).show();
         $promoErrorMsg.hide().text('');
-    } else if (promoCodeValue && !promoApplied && nights > 0) {
+    } else if (promoCodeValue) {
         $promoErrorMsg.text('O código promocional é inválido ou não cumpre as noites mínimas.').show();
         $promoSuccessMsg.hide().text('');
     } else {
@@ -154,45 +122,45 @@ jQuery(function($){
         $promoErrorMsg.hide().text('');
     }
 
-    // ATUALIZAÇÃO DOS CAMPOS (sem disparar "change" para evitar loop)
+    // Atualizar os campos do formulário
     var $nightsField = $form.find('[name="'+F.nights+'"]');
-    if ($nightsField.val() != nights) {
-        $nightsField.val(nights);
-    }
-    
     var $totalField = $form.find('[name="'+F.total+'"]');
-    if ($totalField.val() != total.toFixed(2)) {
+    
+    // LÓGICA DE ATUALIZAÇÃO RESTAURADA
+    if (nights > 0 && nightsValid) {
+        $nightsField.val(nights);
         $totalField.val(total.toFixed(2));
+    } else {
+        $nightsField.val(''); // Limpa o campo de noites
+        // Se um alojamento estiver selecionado (sem datas), mostra o preço por noite
+        if (accom && dailyRate > 0) {
+            $totalField.val(dailyRate.toFixed(2));
+        } else {
+            $totalField.val('0.00');
+        }
     }
   }
 
-  // --- INICIALIZAÇÃO DOS COMPONENTES E EVENTOS ---
-
-  // Inicializar datepickers
-  var fields = [$checkIn, $checkOut];
-  fields.forEach(function($field) {
-      if ($field.hasClass('hasDatepicker')) {
-          $field.datepicker('destroy');
-      }
+  // Inicializadores
+  var dateFields = [$checkIn, $checkOut];
+  dateFields.forEach(function($field) {
+      if ($field.hasClass('hasDatepicker')) { $field.datepicker('destroy'); }
       $field.datepicker({
           dateFormat: 'dd/mm/yy',
           minDate: today_midnight, 
-          onSelect: update // Apenas o onSelect chama o update
+          onSelect: update
       });
   });
 
-  // Garantir que o campo TOTAL é apenas de leitura
   $form.find('[name="'+F.total+'"]').attr('readonly', 'readonly'); 
   
-  // === CORREÇÃO DO LOOP INFINITO ===
-  // Removemos o .on('change') genérico e adicionamos detetores específicos
+  // Detetores de Eventos
+  // ADICIONADO: Evento 'change' para detetar quando os campos de data são limpos manualmente
+  $checkIn.on('change', update);
+  $checkOut.on('change', update);
   
-  // 1. Detetor para os cartões de alojamento
   $form.find('[name="'+F.accommodation+'"]').on('click', update); 
-
-  // 2. Detetor para o campo de código promocional
   $promoCode.on('input', update);
 
-  // Execução inicial para configurar o estado do formulário
-  update();
+  update(); // Execução inicial para carregar o estado do formulário
 });
