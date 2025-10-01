@@ -9,7 +9,6 @@ jQuery(function($){
     if(!s) return null;
     var m = String(s).trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/); 
     if(!m) return null;
-    // CORREÇÃO: Parêntese extra removido (Resolve Uncaught SyntaxError)
     return new Date(m[3].length==2?('20'+m[3]):m[3], m[2]-1, m[1]); 
   }
 
@@ -70,7 +69,6 @@ jQuery(function($){
     var minNightsRequired = 0; // Inicializar
 
     // 1. CÁLCULO BASE (preço normal)
-    // CORREÇÃO CRÍTICA: LER O VALOR DO BOTÃO DE RÁDIO SELECIONADO
     var accom = $form.find('[name="'+F.accommodation+'"]:checked').val() || ''; 
     
     dailyRate = CFG.prices && CFG.prices[accom] ? CFG.prices[accom] : 0;
