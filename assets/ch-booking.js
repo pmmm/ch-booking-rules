@@ -9,7 +9,7 @@ jQuery(function($){
     if(!s) return null;
     var m = String(s).trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/); 
     if(!m) return null;
-    // CORREÇÃO FINAL: Parêntese extra removido (Resolve Uncaught SyntaxError)
+    // CORREÇÃO FINAL: Parêntese extra removido
     return new Date(m[3].length==2?('20'+m[3]):m[3], m[2]-1, m[1]); 
   }
 
@@ -125,9 +125,6 @@ jQuery(function($){
                 total = Math.max(0, total - discountValue); 
             }
             promoApplied = true;
-        } else if (promoCodeValue) {
-            // Se o código foi inserido mas não aplicou (código inválido/noites mínimas)
-            // A mensagem de erro é tratada abaixo.
         }
     }
 
@@ -186,6 +183,9 @@ jQuery(function($){
       }
   });
 
+  // NOVO: Garantir que o campo TOTAL é APENAS DE LEITURA (read-only)
+  $form.find('[name="'+F.total+'"]').attr('readonly', 'readonly'); 
+  
   // NOVO: Garantir que o clique nos cartões de alojamento dispara o update
   $form.find('[name="'+F.accommodation+'"]').on('click', update); 
 
