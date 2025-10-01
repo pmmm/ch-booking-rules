@@ -125,6 +125,9 @@ jQuery(function($){
                 total = Math.max(0, total - discountValue); 
             }
             promoApplied = true;
+        } else if (promoCodeValue) {
+            // Se o código foi inserido mas não aplicou (código inválido/noites mínimas)
+            // A mensagem de erro é tratada abaixo.
         }
     }
 
