@@ -9,7 +9,7 @@ jQuery(function($){
     if(!s) return null;
     var m = String(s).trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/); 
     if(!m) return null;
-    // CORREÇÃO FINAL: Removido o parêntese extra (resolvido o erro de sintaxe)
+    // CORREÇÃO FINAL: Parêntese extra removido (Resolve Uncaught SyntaxError)
     return new Date(m[3].length==2?('20'+m[3]):m[3], m[2]-1, m[1]); 
   }
 
@@ -73,11 +73,6 @@ jQuery(function($){
     // CORREÇÃO CRÍTICA: LER O VALOR DO BOTÃO DE RÁDIO SELECIONADO
     var accom = $form.find('[name="'+F.accommodation+'"]:checked').val() || ''; 
     
-    // DEBUGGING CRÍTICO
-    console.log('--- UPDATE INICIADO ---');
-    console.log('Acomodação lida (Valor/Label):', accom);
-    // ----------------------
-    
     dailyRate = CFG.prices && CFG.prices[accom] ? CFG.prices[accom] : 0;
     
     // NOVO: LÓGICA DE UX DO PREÇO INICIAL
@@ -131,10 +126,6 @@ jQuery(function($){
             }
             promoApplied = true;
         }
-        // NOVO: Se o código foi inserido mas falhou a aplicação, mostramos erro
-        if (!activePromo) {
-             $promoErrorMsg.text('ERRO: O código promocional é inválido ou as noites mínimas não foram cumpridas.').show();
-        }
     }
 
     // 4. VALIDAÇÃO E MENSAGENS
@@ -158,12 +149,15 @@ jQuery(function($){
             .text(CFG.texts.hint_promo_code.replace('{{NAME}}', activePromo.name).replace('{{DISCOUNT}}', activePromo.discount.value + (activePromo.discount.type === 'percent' ? '%' : '€')).replace('{{MIN}}', activePromo.minNights))
             .show();
         $promoErrorMsg.hide().text(''); // Esconder erro se for sucesso
-    } else if (!promoCodeValue) {
+    } else if (promoCodeValue && !promoApplied) {
+        // Se inseriu código e não aplicou (código inválido/noites mínimas)
+        $promoErrorMsg.text('ERRO: O código promocional é inválido ou as noites mínimas não foram cumpridas.').show();
+        $promoSuccessMsg.hide().text('');
+    } else {
         // Esconder ambas as mensagens se o campo estiver vazio
         $promoSuccessMsg.hide().text('');
         $promoErrorMsg.hide().text('');
     }
-
 
     // *** ATUALIZAÇÃO DOS CAMPOS ***
     if(nights>0) $form.find('[name="'+F.nights+'"]').val(nights);

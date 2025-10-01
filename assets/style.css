@@ -166,9 +166,9 @@
 
 /* --- Estilo para Mensagem de Sucesso do Código Promocional --- */
 #chbr-promo-success {
-  display: none; /* Esconder por defeito */
-  background: #d1fae5; /* Verde claro */
-  color: #065f46;     /* Verde escuro para o texto */
+  display: none; 
+  background: #d1fae5; 
+  color: #065f46;     
   border: 1px solid #a7f3d0;
   padding: 10px 15px;
   margin-top: 15px;
@@ -178,11 +178,11 @@
   text-align: center;
 }
 
-/* Estilo para Mensagem de Erro de Noites Mínimas */
-#chbr-minnights-error {
+/* Estilo para Mensagem de Erro de Noites Mínimas e Erro de Promo Code */
+#chbr-minnights-error, #chbr-promo-error {
   display: none;
-  background: #fee2e2; /* Vermelho claro */
-  color: #991b1b;     /* Vermelho escuro para o texto */
+  background: #fee2e2; 
+  color: #991b1b;     
   border: 1px solid #fca5a5;
   padding: 10px 15px;
   margin-top: 5px;
@@ -192,9 +192,8 @@
 }
 
 /* CORREÇÃO VISUAL PARA ELIMINAR O CALENDÁRIO DUPLICADO/FANTASMA */
-/* Assume que o calendário duplicado é o último a ser carregado */
 .ui-datepicker:last-of-type {
-    z-index: 9999 !important; /* Garante que o calendário certo está no topo */
+    z-index: 9999 !important; 
 }
 .ui-datepicker.ui-datepicker-multi:last-of-type {
     display: none !important;
