@@ -2,7 +2,7 @@
 /**
  * Plugin Name: CH Booking Rules
  * Description: Épocas, mínimos e promoções (recorrentes) + código promocional para Fluent Forms.
- * Version: 2.2.1
+ * Version: 2.2.2
  * Author: Pedro & ChatGPT & Gemini
  * License: GPLv2 or later
  * Text Domain: ch-booking-rules
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) { exit; }
 
 class CH_Booking_Rules {
     const OPT_KEY = 'ch_booking_rules_cfg';
-    const VER = '2.2.1'; // Versão final com tradução correta para Flatpickr
+    const VER = '2.2.2'; // Versão com correção de erro crítico de PHP (Parse Error)
 
     public function __construct(){
         add_action('admin_menu', [$this, 'admin_menu']);
@@ -97,8 +97,84 @@ class CH_Booking_Rules {
         echo '<p><button class="button button-primary" name="ch_booking_rules_save" value="1">'.esc_html__('Guardar Alterações','ch-booking-rules').'</button></p></form></div>';
     }
     
-    public function render_seasons_tab($cfg){ /* ... O resto das funções do admin ... */ }
-    public function render_promos_tab($cfg){ /* ... */ }
+    public function enqueue_admin_scripts(){
+        if (($_GET['page'] ?? '') !== 'ch-booking-rules') return;
+        wp_enqueue_script('ch-admin-js', plugins_url('assets/ch-admin.js', __FILE__), ['jquery'], self::VER, true);
+        wp_add_inline_style('wp-admin', '.chbr-rule-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px;align-items:center}.chbr-rule-row input{padding:4px}.chbr-rule-row input[type=number]{width:100px}');
+    }
+
+    public function render_seasons_tab($cfg){
+        $seasons = $cfg['seasons'] ?? [];
+        echo '<h2>'.esc_html__('Regras de Épocas & Mínimos de Noites','ch-booking-rules').'</h2>';
+        echo '<div style="display: flex; gap: 10px; font-weight: bold; margin-bottom: 5px;">';
+        echo '<div style="width: 250px;">'.esc_html__('Nome','ch-booking-rules').'</div>';
+        echo '<div style="width: 100px;">'.esc_html__('Mês/Dia Início','ch-booking-rules').'</div>';
+        echo '<div style="width: 100px;">'.esc_html__('Mês/Dia Fim','ch-booking-rules').'</div>';
+        echo '<div style="width: 100px;">'.esc_html__('Min. Noites','ch-booking-rules').'</div>';
+        echo '<div>'.esc_html__('Ação','ch-booking-rules').'</div></div>';
+        echo '<div id="chbr-seasons-container">';
+        foreach ($seasons as $index => $season) { $this->render_season_row($index, $season); }
+        echo '</div><p><button type="button" class="button chbr-add-rule" data-target="seasons">'.esc_html__('+ Adicionar Nova Época','ch-booking-rules').'</button></p>';
+        echo '<template id="chbr-seasons-template">';
+        $this->render_season_row('{{INDEX}}', $this->default_season_row());
+        echo '</template>';
+    }
+
+    private function render_season_row($index, $season){
+        echo '<div class="chbr-rule-row">';
+        echo '<input type="text" name="seasons['.$index.'][name]" value="'.esc_attr($season['name'] ?? '').'" placeholder="'.esc_attr__('Nome da Época','ch-booking-rules').'" style="width: 250px;" required />';
+        echo '<input type="text" name="seasons['.$index.'][from]" value="'.esc_attr($season['from'] ?? '').'" placeholder="MM-DD" style="width:100px;" required />';
+        echo '<input type="text" name="seasons['.$index.'][to]" value="'.esc_attr($season['to'] ?? '').'" placeholder="MM-DD" style="width:100px;" required />';
+        echo '<input type="number" name="seasons['.$index.'][minNights]" value="'.intval($season['minNights'] ?? 1).'" style="width:100px;" min="1" required />';
+        echo '<button type="button" class="button button-secondary chbr-remove-rule">'.esc_html__('Remover','ch-booking-rules').'</button>';
+        echo '</div>';
+    }
+
+    private function default_season_row(){ return ['name' => '', 'from' => '', 'to' => '', 'minNights' => 1]; }
+    
+    public function render_promos_tab($cfg){
+        $promos = $cfg['promos'] ?? [];
+        echo '<h2>'.esc_html__('Códigos Promocionais e Descontos','ch-booking-rules').'</h2>';
+        echo '<div style="display: flex; gap: 10px; font-weight: bold; margin-bottom: 5px; align-items: center;">';
+        echo '<div style="width: 150px;">'.esc_html__('Nome & Código','ch-booking-rules').'</div>';
+        echo '<div style="width: 100px;">'.esc_html__('Mês/Dia Início','ch-booking-rules').'</div>';
+        echo '<div style="width: 100px;">'.esc_html__('Mês/Dia Fim','ch-booking-rules').'</div>';
+        echo '<div style="width: 150px;">'.esc_html__('Desconto','ch-booking-rules').'</div>';
+        echo '<div style="width: 100px;">'.esc_html__('Min. Noites','ch-booking-rules').'</div>';
+        echo '<div>'.esc_html__('Ação','ch-booking-rules').'</div></div>';
+        echo '<div id="chbr-promos-container">';
+        foreach ($promos as $index => $promo) { $this->render_promo_row($index, $promo); }
+        echo '</div><p><button type="button" class="button chbr-add-rule" data-target="promos">'.esc_html__('+ Adicionar Nova Promoção','ch-booking-rules').'</button></p>';
+        echo '<template id="chbr-promos-template">';
+        $this->render_promo_row('{{INDEX}}', $this->default_promo_row());
+        echo '</template>';
+    }
+
+    private function render_promo_row($index, $promo){
+        $discount_type = esc_attr($promo['discount']['type'] ?? 'percent');
+        echo '<div class="chbr-rule-row">';
+        echo '<div style="display: flex; flex-direction: column;">';
+        echo '<input type="text" name="promos['.$index.'][name]" value="'.esc_attr($promo['name'] ?? '').'" placeholder="'.esc_attr__('Nome Campanha','ch-booking-rules').'" style="width: 150px; margin-bottom: 5px;" required />';
+        echo '<input type="text" name="promos['.$index.'][code]" value="'.esc_attr($promo['code'] ?? '').'" placeholder="'.esc_attr__('CÓDIGO','ch-booking-rules').'" style="width: 150px; font-weight: bold;" required />';
+        echo '</div>';
+        echo '<input type="text" name="promos['.$index.'][from]" value="'.esc_attr($promo['from'] ?? '').'" placeholder="MM-DD" style="width:100px;" />';
+        echo '<input type="text" name="promos['.$index.'][to]" value="'.esc_attr($promo['to'] ?? '').'" placeholder="MM-DD" style="width:100px;" />';
+        echo '<div style="display: flex; flex-direction: column;">';
+        echo '<select name="promos['.$index.'][discount][type]" style="width: 150px; margin-bottom: 5px;">';
+        // LINHAS CORRIGIDAS: Usando aspas duplas na string principal para evitar o erro de parse
+        echo "<option value='percent' ".selected($discount_type, 'percent', false).">% Percentagem</option>";
+        echo "<option value='fixed' ".selected($discount_type, 'fixed', false).">€ Fixo</option>";
+        echo '</select>';
+        echo '<input type="number" name="promos['.$index.'][discount][value]" value="'.floatval($promo['discount']['value'] ?? 0).'" style="width:150px;" min="0" required />';
+        echo '</div>';
+        echo '<input type="number" name="promos['.$index.'][minNights]" value="'.intval($promo['minNights'] ?? 1).'" style="width:100px;" min="1" />';
+        echo '<input type="hidden" name="promos['.$index.'][priority]" value="10" />';
+        echo '<input type="hidden" name="promos['.$index.'][applyRule]" value="full_stay" />';
+        echo '<button type="button" class="button button-secondary chbr-remove-rule">'.esc_html__('Remover','ch-booking-rules').'</button>';
+        echo '</div>';
+    }
+
+    private function default_promo_row(){ return ['name' => '', 'code' => '', 'from' => '', 'to' => '', 'discount' => ['type' => 'percent', 'value' => 0], 'minNights' => 1, 'priority' => 10, 'applyRule' => 'full_stay']; }
 
     public function admin_version_notice(){
         if (get_current_screen()->id !== 'settings_page_ch-booking-rules') return;
@@ -107,19 +183,11 @@ class CH_Booking_Rules {
 
     public function enqueue_frontend(){
         $cfg = $this->get_config();
-        
-        // As dependências agora são só 'jquery' e as do fluentform
         wp_register_script('ch-booking-js', plugins_url('assets/ch-booking.js', __FILE__), ['jquery', 'fluent-forms-public'], self::VER, true);
-        
-        // 1. Passar a configuração principal
         wp_localize_script('ch-booking-js', 'CH_BOOKING_CFG', $cfg);
-        
-        // 2. Passar apenas o código do idioma atual (ex: 'pt', 'fr', 'es')
         $lang_code = substr(get_locale(), 0, 2);
         wp_localize_script('ch-booking-js', 'CHBR_LOCALE', ['lang' => $lang_code]);
-
         wp_enqueue_script('ch-booking-js');
-        
         wp_register_style('ch-booking-style', plugins_url('assets/style.css', __FILE__), [], self::VER);
         wp_enqueue_style('ch-booking-style');
     }
