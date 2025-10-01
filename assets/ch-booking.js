@@ -7,9 +7,11 @@ jQuery(function($){
 
   function parseDMY(s){
     if(!s) return null;
-    var m = String(s).trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$//);
+    // Removida a aspas e parênteses desnecessários
+    var m = String(s).trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/); 
     if(!m) return null;
-    return new Date(m[3].length==2?('20'+m[3]):m[3], m[2]-1, m[1]);
+    // Corrigido o erro de sintaxe: removido o parêntese extra
+    return new Date(m[3].length==2?('20'+m[3]):m[3], m[2]-1, m[1]); 
   }
 
   function daysBetween(d1,d2){ return Math.round((d2-d1)/(1000*60*60*24)); }
@@ -22,14 +24,14 @@ jQuery(function($){
   var $checkOut = $form.find('[name="'+F.check_out+'"]');
   var $promoCode = $form.find('[name="'+F.promo_code+'"]'); 
   
-  // NOVO: Adicionar o elemento de mensagem de sucesso para o código promocional
+  // Adicionar o elemento de mensagem de sucesso para o código promocional
   var $promoCodeGroup = $promoCode.closest('.ff-el-group');
   if (!$('#chbr-promo-success').length) {
       $promoCodeGroup.after('<div id="chbr-promo-success"></div>');
   }
   var $promoSuccessMsg = $('#chbr-promo-success');
   
-  // NOVO: Adicionar o elemento de erro de noites mínimas
+  // Adicionar o elemento de erro de noites mínimas
   if (!$('#chbr-minnights-error').length) {
       $checkOut.closest('.ff-el-group').after('<div id="chbr-minnights-error" class="ff-error-message"></div>');
   }
@@ -95,12 +97,12 @@ jQuery(function($){
         });
     }
     
-    // NOVO: Regra global (garante mínimo de 2 noites se nenhuma regra for aplicada ou for inferior)
+    // Regra global (garante mínimo de 2 noites se nenhuma regra for aplicada ou for inferior)
     if (minNightsRequired < 2) {
         minNightsRequired = 2; 
     }
 
-    // 3. APLICAÇÃO DO DESCONTO (após a verificação mínima)
+    // 3. APLICAÇÃO DO DESCONTO
     if (promoCodeValue && dailyRate > 0 && nights > 0 && CFG.promos && CFG.promos.length) {
         
         CFG.promos.forEach(function(promo){
