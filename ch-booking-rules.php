@@ -2,7 +2,7 @@
 /**
  * Plugin Name: CH Booking Rules
  * Description: Épocas, mínimos e promoções (recorrentes) + código promocional para Fluent Forms.
- * Version: 2.0.28
+ * Version: 2.1.1
  * Author: Pedro & ChatGPT & Gemini
  * License: GPLv2 or later
  * Text Domain: ch-booking-rules
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) { exit; }
 
 class CH_Booking_Rules {
     const OPT_KEY = 'ch_booking_rules_cfg';
-    const VER = '2.0.28'; // VERSÃO FINAL CORRIGIDA
+    const VER = '2.1.1'; // Versão com correções de tradução e compatibilidade
 
     public function __construct(){
         add_action('admin_menu', [$this, 'admin_menu']);
@@ -82,7 +82,6 @@ class CH_Booking_Rules {
         $save_success = true;
         $save_message = '';
         
-        // Processar Épocas
         if (isset($_POST['seasons']) && is_array($_POST['seasons'])) {
             $new_seasons = array_filter(wp_unslash($_POST['seasons']), function($row) {
                 return !empty($row['name']) || !empty($row['from']);
@@ -90,7 +89,6 @@ class CH_Booking_Rules {
             $cfg['seasons'] = array_values($new_seasons); 
         }
 
-        // Processar Promoções
         if (isset($_POST['promos']) && is_array($_POST['promos'])) {
             $new_promos = array_filter(wp_unslash($_POST['promos']), function($row) {
                 return !empty($row['name']) || !empty($row['code']);
@@ -98,7 +96,6 @@ class CH_Booking_Rules {
             $cfg['promos'] = array_values($new_promos);
         }
 
-        // Fallback: Tratar o JSON da aba Avançado
         if (!empty($_POST['ch_rules_json'])) {
             $raw = wp_unslash($_POST['ch_rules_json']);
             $decoded = json_decode($raw, true);
@@ -120,7 +117,6 @@ class CH_Booking_Rules {
         }
     }
 
-
     public function settings_page(){
         if (!current_user_can('manage_options')) return;
         $cfg = $this->get_config();
@@ -137,7 +133,6 @@ class CH_Booking_Rules {
         echo '<div class="wrap">';
         echo '<h1>'.esc_html__('Booking Rules','ch-booking-rules').' <span style="font-size:12px;color:#666;">v'.esc_html(self::VER).'</span></h1>';
 
-        // NAV TABS
         echo '<h2 class="nav-tab-wrapper">';
         echo '<a href="'.esc_url($tab_url_base.'&tab=seasons').'" class="nav-tab '.($active_tab == 'seasons' ? 'nav-tab-active' : '').'">'.esc_html__('Épocas & Mínimos','ch-booking-rules').'</a>';
         echo '<a href="'.esc_url($tab_url_base.'&tab=promos').'" class="nav-tab '.($active_tab == 'promos' ? 'nav-tab-active' : '').'">'.esc_html__('Promoções & Códigos','ch-booking-rules').'</a>';
@@ -147,7 +142,6 @@ class CH_Booking_Rules {
         echo '<form method="post">';
         wp_nonce_field('ch_booking_rules_save_nonce');
         
-        // CONTEÚDO DAS ABAS
         if ( $active_tab == 'seasons' ) {
             $this->render_seasons_tab($cfg);
         } elseif ( $active_tab == 'promos' ) {
@@ -173,14 +167,12 @@ class CH_Booking_Rules {
         wp_add_inline_style('wp-admin', $css);
     }
     
-    // Renderiza o conteúdo da aba Épocas
     public function render_seasons_tab($cfg){
         $seasons = $cfg['seasons'] ?? [];
         
         echo '<h2>'.esc_html__('Regras de Épocas & Mínimos de Noites','ch-booking-rules').'</h2>';
         echo '<p class="description">'.esc_html__('Defina o nome da época, as datas de início e fim (mês-dia, ex: 07-01), e o número mínimo de noites.','ch-booking-rules').'</p>';
         
-        // Títulos das colunas
         echo '<div style="display: flex; gap: 10px; font-weight: bold; margin-bottom: 5px;">';
         echo '<div style="width: 250px;">'.esc_html__('Nome','ch-booking-rules').'</div>';
         echo '<div style="width: 100px;">'.esc_html__('Mês/Dia Início','ch-booking-rules').'</div>';
@@ -189,19 +181,14 @@ class CH_Booking_Rules {
         echo '<div>'.esc_html__('Ação','ch-booking-rules').'</div>';
         echo '</div>';
 
-
-        // CONTAINER ONDE O JAVASCRIPT VAI ADICIONAR AS REGRAS
         echo '<div id="chbr-seasons-container" class="chbr-rules-container">';
-        
         foreach ($seasons as $index => $season) {
             $this->render_season_row($index, $season);
         }
-        
         echo '</div>'; 
         
         echo '<p><button type="button" class="button chbr-add-rule" data-target="seasons">'.esc_html__('+ Adicionar Nova Época','ch-booking-rules').'</button></p>';
         
-        // TEMPLATE
         echo '<template id="chbr-seasons-template">';
         $this->render_season_row('{{INDEX}}', $this->default_season_row());
         echo '</template>';
@@ -214,27 +201,16 @@ class CH_Booking_Rules {
         $minNights = intval($season['minNights'] ?? 1);
         
         echo '<div class="chbr-rule-row">';
-        
         echo '<input type="text" name="seasons['.$index.'][name]" value="'.$name.'" placeholder="'.esc_attr__('Nome da Época','ch-booking-rules').'" style="width: 250px;" required />';
-        
         echo '<input type="text" name="seasons['.$index.'][from]" value="'.$from.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" required />';
-        
         echo '<input type="text" name="seasons['.$index.'][to]" value="'.$to.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" required />';
-        
         echo '<input type="number" name="seasons['.$index.'][minNights]" value="'.$minNights.'" placeholder="'.esc_attr__('Noites','ch-booking-rules').'" style="width:100px;" min="1" required />';
-        
         echo '<button type="button" class="button button-secondary chbr-remove-rule">'.esc_html__('Remover','ch-booking-rules').'</button>';
-        
         echo '</div>';
     }
 
     private function default_season_row(){
-        return [
-            'name' => '', 
-            'from' => '', 
-            'to' => '', 
-            'minNights' => 1
-        ];
+        return ['name' => '', 'from' => '', 'to' => '', 'minNights' => 1];
     }
     
     public function render_promos_tab($cfg){
@@ -243,7 +219,6 @@ class CH_Booking_Rules {
         echo '<h2>'.esc_html__('Códigos Promocionais e Descontos','ch-booking-rules').'</h2>';
         echo '<p class="description">'.esc_html__('Defina o nome da campanha, o código promocional, datas de validade (opcional) e o tipo/valor de desconto.','ch-booking-rules').'</p>';
 
-        // Títulos das colunas
         echo '<div style="display: flex; gap: 10px; font-weight: bold; margin-bottom: 5px; align-items: center;">';
         echo '<div style="width: 150px;">'.esc_html__('Nome & Código','ch-booking-rules').'</div>';
         echo '<div style="width: 100px;">'.esc_html__('Mês/Dia Início','ch-booking-rules').'</div>';
@@ -253,20 +228,14 @@ class CH_Booking_Rules {
         echo '<div>'.esc_html__('Ação','ch-booking-rules').'</div>';
         echo '</div>';
 
-
-        // CONTAINER ONDE O JAVASCRIPT VAI ADICIONar AS REGRAS
         echo '<div id="chbr-promos-container" class="chbr-rules-container">';
-        
         foreach ($promos as $index => $promo) {
             $this->render_promo_row($index, $promo);
         }
-        
         echo '</div>'; 
         
-        // BOTÃO PARA ADICIONAR NOVA REGRA
         echo '<p><button type="button" class="button chbr-add-rule" data-target="promos">'.esc_html__('+ Adicionar Nova Promoção','ch-booking-rules').'</button></p>';
         
-        // TEMPLATE
         echo '<template id="chbr-promos-template">';
         $this->render_promo_row('{{INDEX}}', $this->default_promo_row());
         echo '</template>';
@@ -278,23 +247,16 @@ class CH_Booking_Rules {
         $from = esc_attr($promo['from'] ?? '');
         $to = esc_attr($promo['to'] ?? '');
         $minNights = intval($promo['minNights'] ?? 1);
-        
         $discount_type = esc_attr($promo['discount']['type'] ?? 'percent');
         $discount_value = floatval($promo['discount']['value'] ?? 0);
         
         echo '<div class="chbr-rule-row">';
-        
-        // Nome e Código (em dois inputs para melhor UX, mas mantendo a estrutura original do JSON)
         echo '<div style="display: flex; flex-direction: column;">';
         echo '<input type="text" name="promos['.$index.'][name]" value="'.$name.'" placeholder="'.esc_attr__('Nome Campanha','ch-booking-rules').'" style="width: 150px; margin-bottom: 5px;" required />';
         echo '<input type="text" name="promos['.$index.'][code]" value="'.$code.'" placeholder="'.esc_attr__('CÓDIGO (Ex: OUTONO25)','ch-booking-rules').'" style="width: 150px; font-weight: bold;" required />';
         echo '</div>';
-        
-        // Datas
         echo '<input type="text" name="promos['.$index.'][from]" value="'.$from.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" />';
         echo '<input type="text" name="promos['.$index.'][to]" value="'.$to.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" />';
-        
-        // Desconto
         echo '<div style="display: flex; flex-direction: column;">';
         echo '<select name="promos['.$index.'][discount][type]" style="width: 150px; margin-bottom: 5px;">';
         echo '<option value=\'percent\' '.selected($discount_type, 'percent', false).'>% Percentagem</option>'; 
@@ -302,32 +264,20 @@ class CH_Booking_Rules {
         echo '</select>';
         echo '<input type="number" name="promos['.$index.'][discount][value]" value="'.$discount_value.'" placeholder="'.esc_attr__('Valor','ch-booking-rules').'" style="width:150px;" min="0" required />';
         echo '</div>';
-
-        // Mínimo de Noites
         echo '<input type="number" name="promos['.$index.'][minNights]" value="'.$minNights.'" placeholder="'.esc_attr__('Noites','ch-booking-rules').'" style="width:100px;" min="1" />';
-        
-        // Campos ocultos necessários para a estrutura JSON original
         echo '<input type="hidden" name="promos['.$index.'][priority]" value="10" />';
         echo '<input type="hidden" name="promos['.$index.'][applyRule]" value="full_stay" />';
-
         echo '<button type="button" class="button button-secondary chbr-remove-rule">'.esc_html__('Remover','ch-booking-rules').'</button>';
-        
         echo '</div>';
     }
 
     private function default_promo_row(){
         return [
-            'name' => '', 
-            'from' => '', 
-            'to' => '', 
+            'name' => '', 'from' => '', 'to' => '', 
             'discount' => ['type' => 'percent', 'value' => 0],
-            'minNights' => 1,
-            'priority' => 10,
-            'applyRule' => 'full_stay',
-            'code' => ''
+            'minNights' => 1, 'priority' => 10, 'applyRule' => 'full_stay', 'code' => ''
         ];
     }
-
 
     public function admin_version_notice(){
         $screen = get_current_screen();
@@ -343,8 +293,34 @@ class CH_Booking_Rules {
         wp_enqueue_script('ch-booking-js');
         wp_localize_script('ch-booking-js', 'CH_BOOKING_CFG', $cfg);
 
+        // Ação para carregar as traduções do calendário
+        $this->localize_datepicker_script();
+
         wp_register_style('ch-booking-style', plugins_url('assets/style.css', __FILE__), [], self::VER);
         wp_enqueue_style('ch-booking-style');
+    }
+
+    /**
+     * NOVO: Carrega os ficheiros de tradução do jQuery UI Datepicker
+     * que vêm com o WordPress, para evitar conflitos com plugins de tradução.
+     */
+    private function localize_datepicker_script() {
+        // Converte o locale do WordPress (ex: pt_PT) para o formato do jQuery (ex: pt-PT)
+        $datepicker_locale = str_replace('_', '-', get_locale());
+        
+        // Tenta encontrar o ficheiro de tradução do datepicker que vem com o WordPress
+        $script_path_relative = 'wp-includes/js/jquery/ui/i18n/datepicker-' . $datepicker_locale . '.js';
+        
+        // Se o ficheiro de tradução existir, coloca-o na fila para ser carregado
+        if (file_exists(ABSPATH . $script_path_relative)) {
+            wp_enqueue_script(
+                'jquery-ui-datepicker-i18n',
+                includes_url('js/jquery/ui/i18n/datepicker-' . $datepicker_locale . '.js'),
+                ['jquery', 'jquery-ui-datepicker'],
+                null, // A versão é gerida pelo WordPress
+                true
+            );
+        }
     }
 }
 
