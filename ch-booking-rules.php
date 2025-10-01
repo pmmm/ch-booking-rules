@@ -3,7 +3,11 @@
  * Plugin Name: CH Booking Rules
  * Description: Épocas, mínimos e promoções (recorrentes) + código promocional para Fluent Forms.
 <<<<<<< HEAD
- * Version: 2.2.3
+<<<<<<< HEAD
+ * Version: 2.2.4
+=======
+ * Version: 2.1.2
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
 =======
  * Version: 2.1.2
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
@@ -16,7 +20,11 @@ if (!defined('ABSPATH')) { exit; }
 class CH_Booking_Rules {
     const OPT_KEY = 'ch_booking_rules_cfg';
 <<<<<<< HEAD
-    const VER = '2.2.3'; // Versão com correção de erro crítico de PHP (Parse Error)
+<<<<<<< HEAD
+    const VER = '2.2.4'; // Versão com correção de erro crítico de PHP (Parse Error)
+=======
+    const VER = '2.1.2'; // Versão com correções de tradução e compatibilidade
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
 =======
     const VER = '2.1.2'; // Versão com correções de tradução e compatibilidade
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
@@ -72,6 +80,9 @@ class CH_Booking_Rules {
         $save_success = true;
         $save_message = '';
         
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         if (isset($_POST['seasons']) && is_array($_POST['seasons'])) {
             $cfg['seasons'] = array_values(array_filter(wp_unslash($_POST['seasons']), fn($row) => !empty($row['name']) || !empty($row['from']))); 
@@ -79,6 +90,9 @@ class CH_Booking_Rules {
 <<<<<<< HEAD
 =======
 
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         if (isset($_POST['promos']) && is_array($_POST['promos'])) {
             $cfg['promos'] = array_values(array_filter(wp_unslash($_POST['promos']), fn($row) => !empty($row['name']) || !empty($row['code'])));
@@ -86,6 +100,9 @@ class CH_Booking_Rules {
 <<<<<<< HEAD
 =======
 
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         if (!empty($_POST['ch_rules_json'])) {
             $decoded = json_decode(wp_unslash($_POST['ch_rules_json']), true);
@@ -110,6 +127,9 @@ class CH_Booking_Rules {
         echo '<div class="wrap">';
         echo '<h1>'.esc_html__('Booking Rules','ch-booking-rules').' <span style="font-size:12px;color:#666;">v'.esc_html(self::VER).'</span></h1>';
 
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         echo '<h2 class="nav-tab-wrapper">';
         foreach (['seasons' => 'Épocas & Mínimos', 'promos' => 'Promoções & Códigos', 'advanced' => 'Avançado & Debug'] as $tab => $title) {
@@ -119,12 +139,15 @@ class CH_Booking_Rules {
         wp_nonce_field('ch_booking_rules_save_nonce');
         
 <<<<<<< HEAD
+<<<<<<< HEAD
         if ($active_tab == 'seasons') $this->render_seasons_tab($cfg);
         elseif ($active_tab == 'promos') $this->render_promos_tab($cfg);
         else echo '<h2>'.esc_html__('Configuração JSON','ch-booking-rules').'</h2><p>'.esc_html__('Edite a configuração completa em JSON.','ch-booking-rules').'</p><textarea name="ch_rules_json" style="width:100%;height:450px;font-family:monospace;">'.esc_textarea($json_raw).'</textarea>';
         
         echo '<p><button class="button button-primary" name="ch_booking_rules_save" value="1">'.esc_html__('Guardar Alterações','ch-booking-rules').'</button></p></form></div>';
 =======
+=======
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         if ( $active_tab == 'seasons' ) {
             $this->render_seasons_tab($cfg);
         } elseif ( $active_tab == 'promos' ) {
@@ -153,6 +176,9 @@ class CH_Booking_Rules {
 =======
         echo '<p class="description">'.esc_html__('Defina o nome da época, as datas de início e fim (mês-dia, ex: 07-01), e o número mínimo de noites.','ch-booking-rules').'</p>';
         
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         echo '<div style="display: flex; gap: 10px; font-weight: bold; margin-bottom: 5px;">';
         echo '<div style="width: 250px;">'.esc_html__('Nome','ch-booking-rules').'</div>';
@@ -176,6 +202,9 @@ class CH_Booking_Rules {
         
         echo '<p><button type="button" class="button chbr-add-rule" data-target="seasons">'.esc_html__('+ Adicionar Nova Época','ch-booking-rules').'</button></p>';
         
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         echo '<template id="chbr-seasons-template">';
         $this->render_season_row('{{INDEX}}', $this->default_season_row());
@@ -185,15 +214,21 @@ class CH_Booking_Rules {
     private function render_season_row($index, $season){
         echo '<div class="chbr-rule-row">';
 <<<<<<< HEAD
+<<<<<<< HEAD
         echo '<input type="text" name="seasons['.$index.'][name]" value="'.esc_attr($season['name'] ?? '').'" placeholder="'.esc_attr__('Nome da Época','ch-booking-rules').'" style="width: 250px;" required />';
         echo '<input type="text" name="seasons['.$index.'][from]" value="'.esc_attr($season['from'] ?? '').'" placeholder="MM-DD" style="width:100px;" required />';
         echo '<input type="text" name="seasons['.$index.'][to]" value="'.esc_attr($season['to'] ?? '').'" placeholder="MM-DD" style="width:100px;" required />';
         echo '<input type="number" name="seasons['.$index.'][minNights]" value="'.intval($season['minNights'] ?? 1).'" style="width:100px;" min="1" required />';
 =======
+=======
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         echo '<input type="text" name="seasons['.$index.'][name]" value="'.$name.'" placeholder="'.esc_attr__('Nome da Época','ch-booking-rules').'" style="width: 250px;" required />';
         echo '<input type="text" name="seasons['.$index.'][from]" value="'.$from.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" required />';
         echo '<input type="text" name="seasons['.$index.'][to]" value="'.$to.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" required />';
         echo '<input type="number" name="seasons['.$index.'][minNights]" value="'.$minNights.'" placeholder="'.esc_attr__('Noites','ch-booking-rules').'" style="width:100px;" min="1" required />';
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         echo '<button type="button" class="button button-secondary chbr-remove-rule">'.esc_html__('Remover','ch-booking-rules').'</button>';
         echo '</div>';
@@ -214,6 +249,9 @@ class CH_Booking_Rules {
 =======
         echo '<p class="description">'.esc_html__('Defina o nome da campanha, o código promocional, datas de validade (opcional) e o tipo/valor de desconto.','ch-booking-rules').'</p>';
 
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         echo '<div style="display: flex; gap: 10px; font-weight: bold; margin-bottom: 5px; align-items: center;">';
         echo '<div style="width: 150px;">'.esc_html__('Nome & Código','ch-booking-rules').'</div>';
@@ -238,6 +276,9 @@ class CH_Booking_Rules {
         
         echo '<p><button type="button" class="button chbr-add-rule" data-target="promos">'.esc_html__('+ Adicionar Nova Promoção','ch-booking-rules').'</button></p>';
         
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         echo '<template id="chbr-promos-template">';
         $this->render_promo_row('{{INDEX}}', $this->default_promo_row());
@@ -252,6 +293,9 @@ class CH_Booking_Rules {
         $from = esc_attr($promo['from'] ?? '');
         $to = esc_attr($promo['to'] ?? '');
         $minNights = intval($promo['minNights'] ?? 1);
+<<<<<<< HEAD
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
+=======
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
         $discount_type = esc_attr($promo['discount']['type'] ?? 'percent');
         echo '<div class="chbr-rule-row">';
@@ -260,8 +304,13 @@ class CH_Booking_Rules {
         echo '<input type="text" name="promos['.$index.'][code]" value="'.esc_attr($promo['code'] ?? '').'" placeholder="'.esc_attr__('CÓDIGO','ch-booking-rules').'" style="width: 150px; font-weight: bold;" required />';
         echo '</div>';
 <<<<<<< HEAD
+<<<<<<< HEAD
         echo '<input type="text" name="promos['.$index.'][from]" value="'.esc_attr($promo['from'] ?? '').'" placeholder="MM-DD" style="width:100px;" />';
         echo '<input type="text" name="promos['.$index.'][to]" value="'.esc_attr($promo['to'] ?? '').'" placeholder="MM-DD" style="width:100px;" />';
+=======
+        echo '<input type="text" name="promos['.$index.'][from]" value="'.$from.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" />';
+        echo '<input type="text" name="promos['.$index.'][to]" value="'.$to.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" />';
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
 =======
         echo '<input type="text" name="promos['.$index.'][from]" value="'.$from.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" />';
         echo '<input type="text" name="promos['.$index.'][to]" value="'.$to.'" placeholder="'.esc_attr__('MM-DD','ch-booking-rules').'" style="width:100px;" />';
@@ -275,7 +324,11 @@ class CH_Booking_Rules {
         echo '<input type="number" name="promos['.$index.'][discount][value]" value="'.floatval($promo['discount']['value'] ?? 0).'" style="width:150px;" min="0" required />';
         echo '</div>';
 <<<<<<< HEAD
+<<<<<<< HEAD
         echo '<input type="number" name="promos['.$index.'][minNights]" value="'.intval($promo['minNights'] ?? 1).'" style="width:100px;" min="1" />';
+=======
+        echo '<input type="number" name="promos['.$index.'][minNights]" value="'.$minNights.'" placeholder="'.esc_attr__('Noites','ch-booking-rules').'" style="width:100px;" min="1" />';
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
 =======
         echo '<input type="number" name="promos['.$index.'][minNights]" value="'.$minNights.'" placeholder="'.esc_attr__('Noites','ch-booking-rules').'" style="width:100px;" min="1" />';
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
@@ -305,10 +358,14 @@ class CH_Booking_Rules {
     public function enqueue_frontend(){
         $cfg = $this->get_config();
 <<<<<<< HEAD
+<<<<<<< HEAD
         wp_register_script('ch-booking-js', plugins_url('assets/ch-booking.js', __FILE__), ['jquery', 'fluent-forms-public'], self::VER, true);
         wp_localize_script('ch-booking-js', 'CH_BOOKING_CFG', $cfg);
         $lang_code = substr(get_locale(), 0, 2);
         wp_localize_script('ch-booking-js', 'CHBR_LOCALE', ['lang' => $lang_code]);
+=======
+        wp_register_script('ch-booking-js', plugins_url('assets/ch-booking.js', __FILE__), ['jquery','jquery-ui-datepicker'], self::VER, true);
+>>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
 =======
         wp_register_script('ch-booking-js', plugins_url('assets/ch-booking.js', __FILE__), ['jquery','jquery-ui-datepicker'], self::VER, true);
 >>>>>>> parent of bbe6b36 (fix(i18n): Adiciona fallbacks de tradução para fr/es e melhora a deteção de idioma)
